@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Horse, HorseGender, HorseStatus, Kosek, Vaccination, FatteningRecord, CullRecord } from '../types';
 import CameraCapture from './CameraCapture';
 import Modal from './ui/Modal';
+import { Switch, Field as SwitchGroup, Label as SwitchLabel } from '@headlessui/react';
 import { 
   Search, 
   Filter, 
@@ -971,18 +972,21 @@ export default function HorseDatabase({
                 {/* Pregnancy details (only for mares) */}
                 {horseForm.gender === 'mare' && (
                   <div className="col-span-2 bg-rose-50 p-3 rounded-xl border border-rose-100 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="checkbox"
-                        id="isPregnant-chk"
-                        checked={horseForm.isPregnant}
-                        onChange={(e) => setHorseForm({ ...horseForm, isPregnant: e.target.checked })}
-                        className="w-4 h-4 text-rose-600 border-rose-300 focus:ring-rose-500 rounded"
-                      />
-                      <label htmlFor="isPregnant-chk" className="font-semibold text-rose-900 cursor-pointer">
-                        Кобыла жеребая (беременная)
-                      </label>
-                    </div>
+                    <SwitchGroup>
+                      <div className="flex items-center gap-2.5">
+                        <Switch
+                          id="isPregnant-chk"
+                          checked={horseForm.isPregnant}
+                          onChange={(checked) => setHorseForm({ ...horseForm, isPregnant: checked })}
+                          className="group relative inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-rose-200 transition-colors data-[checked]:bg-rose-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 cursor-pointer"
+                        >
+                          <span className="inline-block h-3.5 w-3.5 translate-x-1 rounded-full bg-white shadow-sm transition-transform group-data-[checked]:translate-x-4.5" />
+                        </Switch>
+                        <SwitchLabel className="font-semibold text-rose-900 cursor-pointer">
+                          Кобыла жеребая (беременная)
+                        </SwitchLabel>
+                      </div>
+                    </SwitchGroup>
 
                     {horseForm.isPregnant && (
                       <div className="grid grid-cols-2 gap-2 pt-1">

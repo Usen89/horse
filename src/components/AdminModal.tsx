@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/react';
 import { User, Lock, Shield, Key, UserPlus, CheckCircle, AlertCircle, X, Edit3, Database, Download, Upload } from 'lucide-react';
 import { exportFarmData, importFarmData } from '../utils/backup';
 import Modal from './ui/Modal';
@@ -29,7 +30,8 @@ export default function AdminModal({
   onCreateAdmin,
   onUpdateCurrentAdmin
 }: AdminModalProps) {
-  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'edit'>('login');
+  // 0 = Войти, 1 = Новый профиль, 2 = Настройки
+  const [tabIndex, setTabIndex] = useState(0);
   
   // Login Form State
   const [loginUsername, setLoginUsername] = useState('');
@@ -139,7 +141,7 @@ export default function AdminModal({
         setRegLogin('');
         setRegCode('');
         setRegSuccess('');
-        setActiveTab('login');
+        setTabIndex(0);
       }, 1500);
     } else {
       setRegError(res.message);
@@ -205,50 +207,39 @@ export default function AdminModal({
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-100 bg-white shrink-0">
-          <button
-            id="admin-tab-login"
-            onClick={() => { setActiveTab('login'); setLoginError(''); setLoginSuccess(''); }}
-            className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'login' 
-                ? 'border-emerald-600 text-emerald-600 bg-emerald-50/20' 
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
-            }`}
-          >
-            <Key className="w-3.5 h-3.5" />
-            Войти
-          </button>
-          <button
-            id="admin-tab-register"
-            onClick={() => { setActiveTab('register'); setRegError(''); setRegSuccess(''); }}
-            className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'register' 
-                ? 'border-emerald-600 text-emerald-600 bg-emerald-50/20' 
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
-            }`}
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            Новый профиль
-          </button>
-          <button
-            id="admin-tab-edit"
-            onClick={() => { setActiveTab('edit'); setEditSuccess(''); }}
-            className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              activeTab === 'edit' 
-                ? 'border-emerald-600 text-emerald-600 bg-emerald-50/20' 
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
-            }`}
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-            Настройки
-          </button>
-        </div>
+        {/* Navigation Tabs (Headless UI TabGroup: клавиатурная навигация + ARIA) */}
+        <TabGroup
+          selectedIndex={tabIndex}
+          onChange={(index) => {
+            setTabIndex(index);
+            // Сброс статусных сообщений при переключении вкладки
+            setLoginError(''); setLoginSuccess('');
+            setRegError(''); setRegSuccess('');
+            setEditSuccess('');
+          }}
+          className="flex-1 flex flex-col overflow-hidden"
+        >
+          <TabList className="flex border-b border-slate-100 bg-white shrink-0">
+            {[
+              { id: 'admin-tab-login', icon: Key, label: 'Войти' },
+              { id: 'admin-tab-register', icon: UserPlus, label: 'Новый профиль' },
+              { id: 'admin-tab-edit', icon: Edit3, label: 'Настройки' },
+            ].map(({ id, icon: Icon, label }) => (
+              <Tab
+                key={id}
+                id={id}
+                className="flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer focus:outline-hidden border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50 data-[selected]:border-emerald-600 data-[selected]:text-emerald-600 data-[selected]:bg-emerald-50/20"
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+              </Tab>
+            ))}
+          </TabList>
 
-        {/* Forms Container */}
-        <div className="flex-1 overflow-y-auto p-6">
+          {/* Forms Container */}
+          <TabPanels className="flex-1 overflow-y-auto p-6">
           {/* TAB 1: LOGIN (SWITCH ACCOUNT) */}
-          {activeTab === 'login' && (
+          <TabPanel className="focus:outline-hidden">
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div className="text-center pb-2">
                 <p className="text-xs text-slate-500 leading-relaxed">
@@ -330,10 +321,10 @@ export default function AdminModal({
                 </div>
               </div>
             </form>
-          )}
+          </TabPanel>
 
           {/* TAB 2: REGISTER NEW */}
-          {activeTab === 'register' && (
+          <TabPanel className="focus:outline-hidden">
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
               <div className="text-center pb-1">
                 <p className="text-xs text-slate-500 leading-relaxed">
@@ -416,10 +407,10 @@ export default function AdminModal({
                 Создать новый профиль
               </button>
             </form>
-          )}
+          </TabPanel>
 
           {/* TAB 3: EDIT CURRENT */}
-          {activeTab === 'edit' && (
+          <TabPanel className="focus:outline-hidden">
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div className="text-center pb-1">
                 <p className="text-xs text-slate-500 leading-relaxed">
@@ -547,8 +538,9 @@ export default function AdminModal({
                 </p>
               </div>
             </form>
-          )}
-        </div>
+          </TabPanel>
+          </TabPanels>
+        </TabGroup>
     </Modal>
   );
 }
