@@ -24,6 +24,7 @@ import AdminModal from './components/AdminModal';
 import FarmHistory from './components/FarmHistory';
 import MaresTab from './components/MaresTab';
 import Modal from './components/ui/Modal';
+import Logo from './components/ui/Logo';
 
 import { 
   LayoutDashboard, 
@@ -584,9 +585,7 @@ export default function App() {
       `}>
         {/* Logo and Brand Title */}
         <div className="p-6 flex items-center gap-3 border-b border-slate-800">
-          <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-white text-lg shadow-md shadow-emerald-900/30">
-            🐎
-          </div>
+          <Logo className="w-9 h-9 shrink-0 drop-shadow-md" />
           <div>
             <h1 className="text-base font-bold text-white tracking-tight leading-none">Табун-Реестр</h1>
             <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block mt-1">
