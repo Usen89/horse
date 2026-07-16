@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { User, Lock, Shield, Key, UserPlus, CheckCircle, AlertCircle, X, Edit3 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { User, Lock, Shield, Key, UserPlus, CheckCircle, AlertCircle, X, Edit3, Database, Download, Upload } from 'lucide-react';
+import { exportFarmData, importFarmData } from '../utils/backup';
 
 interface Admin {
   login: string;
@@ -48,6 +49,35 @@ export default function AdminModal({
   const [editRole, setEditRole] = useState(currentAdmin.role);
   const [editCode, setEditCode] = useState(currentAdmin.code);
   const [editSuccess, setEditSuccess] = useState('');
+
+  // Data backup (export / import) State
+  const [dataMsg, setDataMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => {
+    try {
+      exportFarmData();
+      setDataMsg({ ok: true, text: 'Резервная копия сохранена в папку «Загрузки».' });
+    } catch {
+      setDataMsg({ ok: false, text: 'Не удалось создать резервную копию.' });
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // Позволяет повторно выбрать тот же файл
+    if (!file) return;
+
+    if (!window.confirm('Импорт заменит все текущие данные хозяйства данными из файла. Продолжить?')) {
+      return;
+    }
+
+    const res = await importFarmData(file);
+    setDataMsg({ ok: res.success, text: res.message });
+    if (res.success) {
+      setTimeout(() => window.location.reload(), 1200);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -454,6 +484,68 @@ export default function AdminModal({
               >
                 Сохранить изменения
               </button>
+
+              {/* Резервное копирование данных */}
+              <div className="pt-5 mt-3 border-t border-slate-100 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Database className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    Резервное копирование данных
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Данные хранятся только в этом браузере. Периодически сохраняйте копию, чтобы не
+                  потерять реестр при очистке браузера или чтобы перенести его на другое устройство.
+                </p>
+
+                {dataMsg && (
+                  <div
+                    className={`text-xs p-3 rounded-xl flex items-start gap-2 border ${
+                      dataMsg.ok
+                        ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
+                        : 'bg-rose-50 border-rose-100 text-rose-800'
+                    }`}
+                  >
+                    {dataMsg.ok ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
+                    )}
+                    <span>{dataMsg.text}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    id="admin-export-btn"
+                    onClick={handleExport}
+                    className="flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-98"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Экспорт
+                  </button>
+                  <button
+                    type="button"
+                    id="admin-import-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer active:scale-98"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    Импорт
+                  </button>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={handleImportFile}
+                  className="hidden"
+                />
+                <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5">
+                  ⚠️ Импорт полностью заменит текущие данные данными из выбранного файла.
+                </p>
+              </div>
             </form>
           )}
         </div>
