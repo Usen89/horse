@@ -1,0 +1,463 @@
+import React, { useState } from 'react';
+import { User, Lock, Shield, Key, UserPlus, CheckCircle, AlertCircle, X, Edit3 } from 'lucide-react';
+
+interface Admin {
+  login: string;
+  name: string;
+  role: string;
+  code: string;
+}
+
+interface AdminModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentAdmin: Admin;
+  allAdmins: Admin[];
+  onSwitchAdmin: (login: string, code: string) => { success: boolean; message: string };
+  onCreateAdmin: (newAdmin: Admin) => { success: boolean; message: string };
+  onUpdateCurrentAdmin: (updatedFields: Partial<Admin>) => void;
+}
+
+export default function AdminModal({
+  isOpen,
+  onClose,
+  currentAdmin,
+  allAdmins,
+  onSwitchAdmin,
+  onCreateAdmin,
+  onUpdateCurrentAdmin
+}: AdminModalProps) {
+  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'edit'>('login');
+  
+  // Login Form State
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginCode, setLoginCode] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginSuccess, setLoginSuccess] = useState('');
+
+  // Register Form State
+  const [regName, setRegName] = useState('');
+  const [regLogin, setRegLogin] = useState('');
+  const [regRole, setRegRole] = useState('Зоотехник-селекционер');
+  const [regCode, setRegCode] = useState('');
+  const [regError, setRegError] = useState('');
+  const [regSuccess, setRegSuccess] = useState('');
+
+  // Edit Form State
+  const [editName, setEditName] = useState(currentAdmin.name);
+  const [editRole, setEditRole] = useState(currentAdmin.role);
+  const [editCode, setEditCode] = useState(currentAdmin.code);
+  const [editSuccess, setEditSuccess] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginSuccess('');
+
+    if (!loginUsername.trim() || !loginCode.trim()) {
+      setLoginError('Пожалуйста, заполните логин и код доступа.');
+      return;
+    }
+
+    const res = onSwitchAdmin(loginUsername.trim().toLowerCase(), loginCode.trim());
+    if (res.success) {
+      setLoginSuccess(res.message);
+      // Update local state values for editing
+      const found = allAdmins.find(a => a.login === loginUsername.trim().toLowerCase() && a.code === loginCode.trim());
+      if (found) {
+        setEditName(found.name);
+        setEditRole(found.role);
+        setEditCode(found.code);
+      }
+      setTimeout(() => {
+        setLoginUsername('');
+        setLoginCode('');
+        setLoginSuccess('');
+        onClose();
+      }, 1500);
+    } else {
+      setLoginError(res.message);
+    }
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError('');
+    setRegSuccess('');
+
+    if (!regName.trim() || !regLogin.trim() || !regCode.trim() || !regRole.trim()) {
+      setRegError('Пожалуйста, заполните все обязательные поля.');
+      return;
+    }
+
+    const newAdmin: Admin = {
+      name: regName.trim(),
+      login: regLogin.trim().toLowerCase(),
+      role: regRole.trim(),
+      code: regCode.trim()
+    };
+
+    const res = onCreateAdmin(newAdmin);
+    if (res.success) {
+      setRegSuccess(res.message);
+      setEditName(newAdmin.name);
+      setEditRole(newAdmin.role);
+      setEditCode(newAdmin.code);
+      setTimeout(() => {
+        setRegName('');
+        setRegLogin('');
+        setRegCode('');
+        setRegSuccess('');
+        setActiveTab('login');
+      }, 1500);
+    } else {
+      setRegError(res.message);
+    }
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditSuccess('');
+
+    if (!editName.trim() || !editCode.trim() || !editRole.trim()) {
+      return;
+    }
+
+    onUpdateCurrentAdmin({
+      name: editName.trim(),
+      role: editRole.trim(),
+      code: editCode.trim()
+    });
+
+    setEditSuccess('Профиль успешно обновлен!');
+    setTimeout(() => {
+      setEditSuccess('');
+    }, 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div 
+        id="admin-modal-container"
+        className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden max-h-[90vh]"
+      >
+        {/* Modal Header */}
+        <div className="bg-slate-900 px-6 py-5 text-white flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold">Зоотехнический Доступ</h3>
+              <p className="text-[10px] text-slate-400 font-medium">Смена и авторизация администраторов</p>
+            </div>
+          </div>
+          <button 
+            id="close-admin-modal-btn"
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Current Admin Quick Details */}
+        <div className="bg-slate-50 border-b border-slate-100 p-5 shrink-0 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center font-bold text-emerald-800 text-lg">
+            {currentAdmin.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">Активный администратор</span>
+            <h4 className="font-bold text-slate-800 text-sm truncate">{currentAdmin.name}</h4>
+            <p className="text-xs text-slate-500 mt-0.5">{currentAdmin.role} (Логин: <strong className="text-slate-700">{currentAdmin.login}</strong>)</p>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-slate-100 bg-white shrink-0">
+          <button
+            id="admin-tab-login"
+            onClick={() => { setActiveTab('login'); setLoginError(''); setLoginSuccess(''); }}
+            className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'login' 
+                ? 'border-emerald-600 text-emerald-600 bg-emerald-50/20' 
+                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
+            }`}
+          >
+            <Key className="w-3.5 h-3.5" />
+            Войти
+          </button>
+          <button
+            id="admin-tab-register"
+            onClick={() => { setActiveTab('register'); setRegError(''); setRegSuccess(''); }}
+            className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'register' 
+                ? 'border-emerald-600 text-emerald-600 bg-emerald-50/20' 
+                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
+            }`}
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            Новый профиль
+          </button>
+          <button
+            id="admin-tab-edit"
+            onClick={() => { setActiveTab('edit'); setEditSuccess(''); }}
+            className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              activeTab === 'edit' 
+                ? 'border-emerald-600 text-emerald-600 bg-emerald-50/20' 
+                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
+            }`}
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            Настройки
+          </button>
+        </div>
+
+        {/* Forms Container */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* TAB 1: LOGIN (SWITCH ACCOUNT) */}
+          {activeTab === 'login' && (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div className="text-center pb-2">
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Введите зарегистрированный логин зоотехника и 4-значный код доступа для переключения сессии.
+                </p>
+              </div>
+
+              {loginError && (
+                <div className="bg-rose-50 border border-rose-100 text-rose-800 text-xs p-3 rounded-xl flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+
+              {loginSuccess && (
+                <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs p-3 rounded-xl flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <span>{loginSuccess}</span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Логин</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
+                  <input
+                    type="text"
+                    id="admin-login-input"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
+                    placeholder="yerzhan, admin..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-medium focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Код доступа (PIN)</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
+                  <input
+                    type="password"
+                    id="admin-code-input"
+                    value={loginCode}
+                    onChange={(e) => setLoginCode(e.target.value)}
+                    placeholder="••••"
+                    maxLength={12}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-semibold tracking-widest focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                id="admin-switch-btn"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer shadow-md shadow-emerald-900/10 hover:shadow-emerald-900/20 active:scale-98 mt-2"
+              >
+                Сменить Администратора
+              </button>
+
+              <div className="pt-3 border-t border-slate-100">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Зарегистрированные аккаунты:</span>
+                <div className="flex flex-wrap gap-2">
+                  {allAdmins.map((adm) => (
+                    <div 
+                      key={adm.login}
+                      onClick={() => {
+                        setLoginUsername(adm.login);
+                        setLoginCode(adm.code);
+                      }}
+                      className="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-medium cursor-pointer flex items-center gap-1"
+                    >
+                      <span>{adm.name}</span>
+                      <span className="text-slate-400 text-[10px]">({adm.login})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* TAB 2: REGISTER NEW */}
+          {activeTab === 'register' && (
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div className="text-center pb-1">
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Зарегистрируйте нового сотрудника для ведения зоотехнического реестра.
+                </p>
+              </div>
+
+              {regError && (
+                <div className="bg-rose-50 border border-rose-100 text-rose-800 text-xs p-3 rounded-xl flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
+                  <span>{regError}</span>
+                </div>
+              )}
+
+              {regSuccess && (
+                <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs p-3 rounded-xl flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <span>{regSuccess}</span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">ФИО Администратора</label>
+                <input
+                  type="text"
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  placeholder="Например: Самат Смаков"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-xs font-medium focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Логин (ID)</label>
+                  <input
+                    type="text"
+                    value={regLogin}
+                    onChange={(e) => setRegLogin(e.target.value.replace(/\s+/g, ''))}
+                    placeholder="samat"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-xs font-medium focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Код доступа (PIN)</label>
+                  <input
+                    type="text"
+                    value={regCode}
+                    onChange={(e) => setRegCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder="Например: 5555"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-xs font-semibold tracking-wider focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Должность / Роль</label>
+                <select
+                  value={regRole}
+                  onChange={(e) => setRegRole(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3.5 text-xs font-medium focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                >
+                  <option value="Зоотехник-селекционер">Зоотехник-селекционер</option>
+                  <option value="Главный зоотехник">Главный зоотехник</option>
+                  <option value="Ветеринарный врач">Ветеринарный врач</option>
+                  <option value="Директор конезавода">Директор конезавода</option>
+                  <option value="Старший табунщик">Старший табунщик</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                id="admin-register-btn"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer shadow-md active:scale-98 mt-2"
+              >
+                Создать новый профиль
+              </button>
+            </form>
+          )}
+
+          {/* TAB 3: EDIT CURRENT */}
+          {activeTab === 'edit' && (
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="text-center pb-1">
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Измените данные вашего текущего активного профиля администратора.
+                </p>
+              </div>
+
+              {editSuccess && (
+                <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs p-3 rounded-xl flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                  <span>{editSuccess}</span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Логин (Неизменяемый)</label>
+                <input
+                  type="text"
+                  value={currentAdmin.login}
+                  disabled
+                  className="w-full bg-slate-100 border border-slate-200 rounded-xl py-2 px-4 text-xs font-medium text-slate-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Имя / ФИО</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-xs font-medium focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Должность</label>
+                <input
+                  type="text"
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-xs font-medium focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Код доступа (PIN)</label>
+                <input
+                  type="text"
+                  value={editCode}
+                  onChange={(e) => setEditCode(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 text-xs font-semibold focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                id="admin-save-btn"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer shadow-md active:scale-98 mt-2"
+              >
+                Сохранить изменения
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

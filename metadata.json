@@ -1,0 +1,6 @@
+{
+  "name": "Управление Коневодческим Хозяйством",
+  "description": "Профессиональная система управления коневодческим хозяйством: учет косяков, базы данных лошадей, родословных древо, вакцинации, учет откорма и забоя.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
