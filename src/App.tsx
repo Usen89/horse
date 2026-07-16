@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Horse, Kosek, Vaccination, FatteningRecord, CullRecord, HorseStatus } from './types';
 import { 
   INITIAL_HORSES, 
@@ -111,6 +111,45 @@ export default function App() {
       setActiveTab('database');
     }
   };
+
+  // Свайп вправо от левого края экрана = «Назад» (мобильный жест)
+  const goBackRef = useRef(handleGoBack);
+  goBackRef.current = handleGoBack;
+
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      // Жест начинается только у левого края (как в iOS/Android)
+      if (t.clientX <= 40) {
+        tracking = true;
+        startX = t.clientX;
+        startY = t.clientY;
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!tracking) return;
+      tracking = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = Math.abs(t.clientY - startY);
+      // Достаточно длинный и преимущественно горизонтальный свайп вправо
+      if (dx > 70 && dx > dy * 1.5) {
+        goBackRef.current();
+      }
+    };
+
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
+    };
+  }, []);
 
   // Administrator states
   const [currentAdmin, setCurrentAdmin] = useState<Admin>({
@@ -517,8 +556,6 @@ export default function App() {
   };
 
   // 8. Navigation & Section Title helper
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const getSectionTitle = (tab: string) => {
     switch (tab) {
       case 'dashboard': return 'Главная Панель';
@@ -572,20 +609,8 @@ export default function App() {
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden">
       
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* LEFT SIDEBAR - Sleek Dark Theme */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 flex flex-col text-slate-300 border-r border-slate-800 shrink-0
-        transition-transform duration-300 md:static md:translate-x-0
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      {/* LEFT SIDEBAR - Sleek Dark Theme (только десктоп; на мобильных — нижняя навигация) */}
+      <aside className="hidden md:flex w-64 bg-slate-900 flex-col text-slate-300 border-r border-slate-800 shrink-0">
         {/* Logo and Brand Title */}
         <div className="p-6 flex items-center gap-3 border-b border-slate-800">
           <Logo className="w-9 h-9 shrink-0 drop-shadow-md" />
@@ -602,7 +627,7 @@ export default function App() {
           {/* Dashboard */}
           <button 
             id="tab-dashboard"
-            onClick={() => { handleTabChange('dashboard'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('dashboard'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'dashboard' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -616,7 +641,7 @@ export default function App() {
           {/* Horse Database */}
           <button 
             id="tab-database"
-            onClick={() => { handleTabChange('database'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('database'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'database' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -630,7 +655,7 @@ export default function App() {
           {/* Koseks */}
           <button 
             id="tab-koseks"
-            onClick={() => { handleTabChange('koseks'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('koseks'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'koseks' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -644,7 +669,7 @@ export default function App() {
           {/* Fattening */}
           <button 
             id="tab-fattening"
-            onClick={() => { handleTabChange('fattening'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('fattening'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'fattening' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -658,7 +683,7 @@ export default function App() {
           {/* Mares and Offspring */}
           <button 
             id="tab-mares"
-            onClick={() => { handleTabChange('mares'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('mares'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'mares' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -672,7 +697,7 @@ export default function App() {
           {/* Vaccinations */}
           <button 
             id="tab-vaccinations"
-            onClick={() => { handleTabChange('vaccinations'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('vaccinations'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'vaccinations' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -686,7 +711,7 @@ export default function App() {
           {/* Cull History */}
           <button 
             id="tab-culls"
-            onClick={() => { handleTabChange('culls'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('culls'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'culls' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -700,7 +725,7 @@ export default function App() {
           {/* Farm History (История) */}
           <button 
             id="tab-history"
-            onClick={() => { handleTabChange('history'); setIsSidebarOpen(false); }}
+            onClick={() => { handleTabChange('history'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === 'history' 
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -715,7 +740,7 @@ export default function App() {
           {selectedHorseForPedigree && (
             <button 
               id="tab-pedigree"
-              onClick={() => { handleTabChange('pedigree'); setIsSidebarOpen(false); }}
+              onClick={() => { handleTabChange('pedigree'); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'pedigree' 
                   ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20' 
@@ -744,27 +769,18 @@ export default function App() {
         
         {/* MAIN HEADER - High Contrast Sleek Layout */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-30">
-          <div className="flex items-center gap-4">
-            {/* Hamburger for Mobile screen toggling */}
-            <button 
-              id="mobile-sidebar-toggle"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-100 md:hidden transition-colors cursor-pointer"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-
+          <div className="flex items-center gap-3">
+            {/* Стрелка «Назад» без надписи (левый верхний угол) */}
             {tabHistory.length > 0 && (
               <button
                 type="button"
+                id="header-back-btn"
                 onClick={handleGoBack}
-                className="flex items-center justify-center px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-emerald-700 transition-all shadow-2xs active:scale-95 cursor-pointer mr-2 shrink-0"
-                title="Назад к предыдущей вкладке"
+                aria-label="Назад"
+                title="Назад"
+                className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-emerald-700 transition-all shadow-2xs active:scale-90 cursor-pointer shrink-0"
               >
-                <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-                <span className="text-xs font-extrabold">Назад</span>
+                <ArrowLeft className="w-4.5 h-4.5" />
               </button>
             )}
 

@@ -66,6 +66,23 @@ export default function KosekManagement({
   // Stallion swap overlay state
   const [isChangingStallion, setIsChangingStallion] = useState(false);
   const [selectedNewStallionId, setSelectedNewStallionId] = useState('');
+  const [newKosekName, setNewKosekName] = useState('');
+
+  /**
+   * Предлагает название косяка при смене вожака: если текущее название
+   * содержит имя старого жеребца (в т.ч. в падеже — «Косяк Кокжала»)
+   * или следует шаблону «Косяк …», подставляем «Косяк {новый вожак}».
+   * Кастомные названия (например «Западное пастбище») не трогаем.
+   */
+  const suggestKosekName = (kosek: Kosek, oldLeaderName: string | undefined, newLeaderName: string): string => {
+    const containsOldLeader =
+      !!oldLeaderName &&
+      kosek.name.toLowerCase().includes(oldLeaderName.toLowerCase().slice(0, Math.max(3, oldLeaderName.length - 2)));
+    if (containsOldLeader || /^косяк\s/i.test(kosek.name.trim())) {
+      return `Косяк ${newLeaderName}`;
+    }
+    return kosek.name;
+  };
 
   // Quick horse add state
   const [selectedNewHorseId, setSelectedNewHorseId] = useState('');
@@ -149,15 +166,18 @@ export default function KosekManagement({
 
     // 3. Assign new stallion to this Kosek
     onMoveHorseToKosek(newStallionId, currentKosek.id);
-    
-    // 4. Update Kosek's primary leader ID
-    onUpdateKosek(currentKosek.id, { stallionId: newStallionId });
+
+    // 4. Update Kosek's primary leader ID AND family name (имя семейства
+    //    следует за новым вожаком; пользователь мог отредактировать его в форме)
+    const finalName = newKosekName.trim() || currentKosek.name;
+    onUpdateKosek(currentKosek.id, { stallionId: newStallionId, name: finalName });
 
     // 5. Force open the stallion details card in the interactive navigator instantly
     setIsStallionActivated(true);
 
     setIsChangingStallion(false);
     setSelectedNewStallionId('');
+    setNewKosekName('');
   };
 
   // Quick Add Horse to current Kosek
@@ -454,32 +474,56 @@ export default function KosekManagement({
                       Старый жеребец ({activeLeader?.name || 'не назначен'}) будет выведен на свободный выпас. Новый возглавит этот косяк.
                     </p>
 
-                    <div className="flex gap-2">
-                      <select
-                        required
-                        value={selectedNewStallionId}
-                        onChange={(e) => setSelectedNewStallionId(e.target.value)}
-                        className="flex-1 p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-white text-xs font-semibold cursor-pointer text-slate-800"
-                      >
-                        <option value="">Выберите нового вожака...</option>
-                        {allFarmStallions
-                          .filter(st => st.id !== currentKosek.stallionId)
-                          .map(st => (
-                            <option key={st.id} value={st.id}>
-                              {st.name} ({st.coat} • {getAgeText(st.birthDate)}) {st.kosekId ? `(сейчас в: ${koseks.find(k=>k.id===st.kosekId)?.name || 'косяке'})` : '(свободный выпас)'}
-                            </option>
-                          ))
+                    <select
+                      required
+                      value={selectedNewStallionId}
+                      onChange={(e) => {
+                        const newId = e.target.value;
+                        setSelectedNewStallionId(newId);
+                        // Автоматически предлагаем новое имя семейства по новому вожаку
+                        const newLeader = allFarmStallions.find(st => st.id === newId);
+                        if (newLeader) {
+                          setNewKosekName(suggestKosekName(currentKosek, activeLeader?.name, newLeader.name));
+                        } else {
+                          setNewKosekName('');
                         }
-                      </select>
-                      
-                      <button
-                        type="submit"
-                        disabled={!selectedNewStallionId}
-                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs px-3 py-2 rounded-xl transition-all cursor-pointer"
-                      >
-                        Ок
-                      </button>
-                    </div>
+                      }}
+                      className="w-full p-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-white text-xs font-semibold cursor-pointer text-slate-800"
+                    >
+                      <option value="">Выберите нового вожака...</option>
+                      {allFarmStallions
+                        .filter(st => st.id !== currentKosek.stallionId)
+                        .map(st => (
+                          <option key={st.id} value={st.id}>
+                            {st.name} ({st.coat} • {getAgeText(st.birthDate)}) {st.kosekId ? `(сейчас в: ${koseks.find(k=>k.id===st.kosekId)?.name || 'косяке'})` : '(свободный выпас)'}
+                          </option>
+                        ))
+                      }
+                    </select>
+
+                    {selectedNewStallionId && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">
+                          Новое название семейства
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={newKosekName}
+                          onChange={(e) => setNewKosekName(e.target.value)}
+                          className="w-full p-2 border border-amber-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-white text-xs font-semibold text-slate-800"
+                          placeholder="Например: Косяк Тайфуна"
+                        />
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={!selectedNewStallionId}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs px-3 py-2.5 rounded-xl transition-all cursor-pointer active:scale-98"
+                    >
+                      Сохранить
+                    </button>
                   </form>
                 )}
               </div>
