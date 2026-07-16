@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Horse, FatteningRecord } from '../types';
 import { getKazakhCategory } from '../utils/kazakhCategory';
+import Modal from './ui/Modal';
 import { 
   Utensils, 
   Calendar, 
@@ -307,9 +308,14 @@ export default function FatteningTab({
       </div>
 
       {/* --- WEIGHT UPDATE DIALOG --- */}
-      {showWeightModal && selectedRecord && (
-        <div id="update-weight-modal" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-xs w-full p-6 space-y-4">
+      <Modal
+        open={showWeightModal && !!selectedRecord}
+        onClose={() => setShowWeightModal(false)}
+        panelId="update-weight-modal"
+        panelClassName="bg-white rounded-2xl shadow-xl max-w-xs w-full p-6 space-y-4"
+      >
+        {selectedRecord && (
+          <>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-base">Контрольное взвешивание</h3>
               <button onClick={() => setShowWeightModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
@@ -365,9 +371,9 @@ export default function FatteningTab({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
     </div>
   );

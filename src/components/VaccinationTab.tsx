@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Horse, Vaccination } from '../types';
 import { getKazakhCategory } from '../utils/kazakhCategory';
 import { getEffectiveVaccinationStatus } from '../utils/vaccination';
+import Modal from './ui/Modal';
 import { 
   Calendar, 
   ShieldAlert, 
@@ -438,9 +439,14 @@ export default function VaccinationTab({
       </div>
 
       {/* --- EDIT VACCINATION MODAL (MANUAL EDITING) --- */}
-      {editingVaccine && (
-        <div id="edit-vaccine-modal" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4 text-xs text-slate-600">
+      <Modal
+        open={!!editingVaccine}
+        onClose={() => setEditingVaccine(null)}
+        panelId="edit-vaccine-modal"
+        panelClassName="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4 text-xs text-slate-600"
+      >
+        {editingVaccine && (
+          <>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-base">Корректировка ветеринарной записи</h3>
               <button onClick={() => setEditingVaccine(null)} className="text-slate-400 hover:text-slate-600">✕</button>
@@ -526,9 +532,9 @@ export default function VaccinationTab({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
     </div>
   );

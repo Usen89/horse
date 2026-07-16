@@ -20,6 +20,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Horse, Kosek } from '../types';
+import Modal from './ui/Modal';
 
 export interface HistoryEvent {
   id: string;
@@ -352,9 +353,12 @@ export default function FarmHistory({ horses, koseks, currentAdminName, onReques
       )}
 
       {/* Add Custom History Record Modal */}
-      {showAddModal && (
-        <div id="add-history-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 animate-fadeIn flex flex-col max-h-[90vh]">
+      <Modal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        panelId="add-history-modal"
+        panelClassName="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 flex flex-col max-h-[90vh]"
+      >
             <div className="flex justify-between items-center border-b border-slate-100 pb-3 shrink-0">
               <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
                 <History className="w-5 h-5 text-emerald-600" />
@@ -444,9 +448,7 @@ export default function FarmHistory({ horses, koseks, currentAdminName, onReques
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
     </div>
   );

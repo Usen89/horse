@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { CullRecord } from '../types';
+import Modal from './ui/Modal';
 import { 
   AlertTriangle, 
   Calendar, 
@@ -256,9 +257,13 @@ export default function CullLog({ culls, onUpdateCull, onDeleteCull }: CullLogPr
       </div>
 
       {/* Edit Cull Modal */}
-      {editingCull && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col">
+      <Modal
+        open={!!editingCull}
+        onClose={() => setEditingCull(null)}
+        panelClassName="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col"
+      >
+        {editingCull && (
+          <>
             {/* Header */}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white flex justify-between items-center">
               <div>
@@ -410,9 +415,9 @@ export default function CullLog({ culls, onUpdateCull, onDeleteCull }: CullLogPr
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
     </div>
   );
