@@ -548,9 +548,9 @@ export default function HorseDatabase({
                       id={`pedigree-link-${horse.id}`}
                       onClick={() => onSelectHorseForPedigree(horse)}
                       className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all flex items-center gap-1 text-[11px] font-semibold"
-                      title="Родословное древо"
+                      title="Потомство лошади"
                     >
-                      <GitBranch className="w-4 h-4" /> Древо
+                      <GitBranch className="w-4 h-4" /> Потомство
                     </button>
 
                     <div className="flex gap-1">
@@ -688,7 +688,7 @@ export default function HorseDatabase({
                             id={`row-pedigree-${horse.id}`}
                             onClick={() => onSelectHorseForPedigree(horse)}
                             className="p-1 hover:bg-emerald-50 text-emerald-600 rounded"
-                            title="Родословное древо"
+                            title="Потомство лошади"
                           >
                             <GitBranch className="w-4 h-4" />
                           </button>

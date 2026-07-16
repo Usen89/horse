@@ -19,7 +19,7 @@ import KosekManagement from './components/KosekManagement';
 import FatteningTab from './components/FatteningTab';
 import VaccinationTab from './components/VaccinationTab';
 import CullLog from './components/CullLog';
-import PedigreeTree from './components/PedigreeTree';
+import OffspringTree from './components/OffspringTree';
 import AdminModal from './components/AdminModal';
 import FarmHistory from './components/FarmHistory';
 import MaresTab from './components/MaresTab';
@@ -527,7 +527,7 @@ export default function App() {
       case 'vaccinations': return 'Ветеринарный Контроль';
       case 'culls': return 'Архив Забоя (Согым)';
       case 'history': return 'История и События';
-      case 'pedigree': return `Родословная: ${selectedHorseForPedigree?.name || ''}`;
+      case 'pedigree': return `Потомство: ${selectedHorseForPedigree?.name || ''}`;
       default: return 'Панель Управления';
     }
   };
@@ -720,7 +720,7 @@ export default function App() {
               }`}
             >
               <GitBranch className="w-4.5 h-4.5 shrink-0" /> 
-              <span className="truncate">Древо: {selectedHorseForPedigree.name}</span>
+              <span className="truncate">Потомство: {selectedHorseForPedigree.name}</span>
             </button>
           )}
         </nav>
@@ -814,8 +814,11 @@ export default function App() {
               culls={culls}
               onNavigate={(tab) => {
                 if (tab === 'pedigree') {
-                  const firstWithPedigree = horses.find(h => h.sireId || h.damId);
-                  if (firstWithPedigree) navigateToPedigree(firstWithPedigree);
+                  // Открываем потомство первой лошади, у которой есть потомки
+                  const firstWithOffspring = horses.find(h =>
+                    horses.some(c => c.sireId === h.id || c.damId === h.id)
+                  );
+                  if (firstWithOffspring) navigateToPedigree(firstWithOffspring);
                 } else {
                   setActiveTab(tab);
                 }
@@ -899,7 +902,7 @@ export default function App() {
           )}
 
           {activeTab === 'pedigree' && selectedHorseForPedigree && (
-            <PedigreeTree 
+            <OffspringTree
               horse={selectedHorseForPedigree}
               allHorses={horses}
               onSelectHorse={focusHorseFromPedigree}

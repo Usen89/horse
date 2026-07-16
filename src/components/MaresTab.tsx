@@ -580,7 +580,7 @@ export default function MaresTab({
                       className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <GitBranch className="w-4 h-4 text-slate-500" />
-                      <span>Древо потомства ({childrenCount})</span>
+                      <span>Потомство ({childrenCount})</span>
                       {expandedLineage[mare.id] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </button>
                   </div>
