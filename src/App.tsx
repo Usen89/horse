@@ -25,6 +25,7 @@ import FarmHistory from './components/FarmHistory';
 import MaresTab from './components/MaresTab';
 import Modal from './components/ui/Modal';
 import Logo from './components/ui/Logo';
+import ProfileTab from './components/ProfileTab';
 
 import { 
   LayoutDashboard, 
@@ -38,7 +39,8 @@ import {
   Info,
   History,
   Baby,
-  ArrowLeft
+  ArrowLeft,
+  UserCircle
 } from 'lucide-react';
 
 interface Admin {
@@ -527,6 +529,7 @@ export default function App() {
       case 'vaccinations': return 'Ветеринарный Контроль';
       case 'culls': return 'Архив Забоя (Согым)';
       case 'history': return 'История и События';
+      case 'profile': return 'Профиль';
       case 'pedigree': return `Потомство: ${selectedHorseForPedigree?.name || ''}`;
       default: return 'Панель Управления';
     }
@@ -901,6 +904,17 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'profile' && (
+            <ProfileTab
+              currentAdmin={currentAdmin}
+              horses={horses}
+              vaccinations={vaccinations}
+              culls={culls}
+              onNavigate={handleTabChange}
+              onOpenAdminSettings={() => setIsAdminModalOpen(true)}
+            />
+          )}
+
           {activeTab === 'pedigree' && selectedHorseForPedigree && (
             <OffspringTree
               horse={selectedHorseForPedigree}
@@ -911,88 +925,55 @@ export default function App() {
 
         </div>
 
-        {/* Sleek footer built into main panel */}
-        <footer className="bg-white border-t border-slate-200 py-4 px-6 text-slate-400 text-[11px] shrink-0 flex flex-col sm:flex-row justify-between items-center gap-2 pb-20 md:pb-4">
-          <p>© 2026 Табун-Реестр. Разработано в соответствии с международными зоотехническими и ветеринарными практиками.</p>
-          <div className="flex gap-4">
-            <span className="hover:text-slate-600 transition-colors cursor-pointer">Ветеринарные стандарты ВОЗЖ</span>
-            <span className="hover:text-slate-600 transition-colors cursor-pointer">Племенной учет ФАО</span>
-          </div>
-        </footer>
-
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <nav id="mobile-bottom-navigation" className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-2xl md:hidden z-40 flex justify-around items-center h-16 px-1 pb-safe">
-        <button
-          onClick={() => { handleTabChange('dashboard'); setSelectedHorseForPedigree(null); }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all cursor-pointer ${
-            activeTab === 'dashboard' ? 'text-emerald-600 font-extrabold' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <LayoutDashboard className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'dashboard' ? 'scale-110 text-emerald-600' : 'text-slate-400'}`} />
-          <span>Главная</span>
-        </button>
-
-        <button
-          onClick={() => { handleTabChange('database'); }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all cursor-pointer ${
-            activeTab === 'database' ? 'text-emerald-600 font-extrabold' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <Database className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'database' ? 'scale-110 text-emerald-600' : 'text-slate-400'}`} />
-          <span>Реестр</span>
-        </button>
-
-        <button
-          onClick={() => { handleTabChange('koseks'); }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all cursor-pointer ${
-            activeTab === 'koseks' ? 'text-emerald-600 font-extrabold' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <Users className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'koseks' ? 'scale-110 text-emerald-600' : 'text-slate-400'}`} />
-          <span>Косяки</span>
-        </button>
-
-        <button
-          onClick={() => { handleTabChange('fattening'); }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all cursor-pointer ${
-            activeTab === 'fattening' ? 'text-emerald-600 font-extrabold' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <Utensils className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'fattening' ? 'scale-110 text-emerald-600' : 'text-slate-400'}`} />
-          <span>Откорм</span>
-        </button>
-
-        <button
-          onClick={() => { handleTabChange('vaccinations'); }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all cursor-pointer ${
-            activeTab === 'vaccinations' ? 'text-emerald-600 font-extrabold' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <ShieldCheck className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'vaccinations' ? 'scale-110 text-emerald-600' : 'text-slate-400'}`} />
-          <span>Вакцины</span>
-        </button>
-
-        <button
-          onClick={() => { handleTabChange('mares'); }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all cursor-pointer ${
-            activeTab === 'mares' ? 'text-emerald-600 font-extrabold' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <Baby className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'mares' ? 'scale-110 text-emerald-600' : 'text-slate-400'}`} />
-          <span>Кобылы</span>
-        </button>
-
-        <button
-          onClick={() => { handleTabChange('history'); }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-bold transition-all cursor-pointer ${
-            activeTab === 'history' ? 'text-emerald-600 font-extrabold' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <History className={`w-5 h-5 mb-0.5 transition-transform ${activeTab === 'history' ? 'scale-110 text-emerald-600' : 'text-slate-400'}`} />
-          <span>История</span>
-        </button>
+      {/* MOBILE BOTTOM NAVIGATION BAR — 5 основных разделов (Material 3 style) */}
+      <nav
+        id="mobile-bottom-navigation"
+        aria-label="Основная навигация"
+        className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-2xl md:hidden z-40 flex items-stretch h-[68px] px-1 pb-safe"
+      >
+        {[
+          { tab: 'dashboard', icon: LayoutDashboard, label: 'Главная' },
+          { tab: 'database', icon: Database, label: 'Реестр' },
+          { tab: 'koseks', icon: Users, label: 'Косяки' },
+          { tab: 'mares', icon: Baby, label: 'Кобылы' },
+          { tab: 'profile', icon: UserCircle, label: 'Профиль' },
+        ].map(({ tab, icon: Icon, label }) => {
+          // Разделы, интегрированные в Профиль, подсвечивают вкладку «Профиль»
+          const profileChildren = ['fattening', 'vaccinations', 'culls', 'history'];
+          const isActive =
+            activeTab === tab || (tab === 'profile' && profileChildren.includes(activeTab));
+          return (
+            <button
+              key={tab}
+              id={`mobile-tab-${tab}`}
+              onClick={() => {
+                handleTabChange(tab);
+                if (tab === 'dashboard') setSelectedHorseForPedigree(null);
+              }}
+              aria-current={isActive ? 'page' : undefined}
+              className="flex flex-col items-center justify-center flex-1 h-full pt-1.5 pb-1 gap-0.5 cursor-pointer group"
+            >
+              <span
+                className={`flex items-center justify-center w-14 h-7 rounded-full transition-all ${
+                  isActive
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'text-slate-400 group-hover:text-slate-600 group-active:bg-slate-100'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+              </span>
+              <span
+                className={`text-[10px] leading-none transition-colors ${
+                  isActive ? 'text-emerald-800 font-extrabold' : 'text-slate-400 font-bold'
+                }`}
+              >
+                {label}
+              </span>
+            </button>
+          );
+        })}
       </nav>
 
       {/* Administrator settings & switching modal */}
