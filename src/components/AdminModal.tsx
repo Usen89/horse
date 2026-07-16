@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/react';
-import { User, Lock, Shield, Key, UserPlus, CheckCircle, AlertCircle, X, Edit3, Database, Download, Upload } from 'lucide-react';
+import { User, Lock, Shield, Key, UserPlus, CheckCircle, AlertCircle, X, Edit3, Database, Download, Upload, Cloud as CloudIcon, UploadCloud, DownloadCloud } from 'lucide-react';
 import { exportFarmData, importFarmData } from '../utils/backup';
+import { getCloudConfig, saveCloudConfig, pushAllToCloud, pullAllFromCloud } from '../utils/cloudSync';
 import Modal from './ui/Modal';
 
 interface Admin {
@@ -56,6 +57,42 @@ export default function AdminModal({
   // Data backup (export / import) State
   const [dataMsg, setDataMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cloud sync (Supabase) State
+  const initialCloudCfg = getCloudConfig();
+  const [cloudUrl, setCloudUrl] = useState(initialCloudCfg.url);
+  const [cloudKey, setCloudKey] = useState(initialCloudCfg.anonKey);
+  const [cloudMsg, setCloudMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [cloudBusy, setCloudBusy] = useState(false);
+
+  const handleCloudPush = async () => {
+    saveCloudConfig({ url: cloudUrl, anonKey: cloudKey });
+    if (!window.confirm('Отправить все данные хозяйства в облако? Данные в облаке будут заменены текущими локальными.')) return;
+    setCloudBusy(true);
+    setCloudMsg(null);
+    const res = await pushAllToCloud();
+    setCloudBusy(false);
+    setCloudMsg({
+      ok: res.success,
+      text: res.success && res.details ? `${res.message} (${res.details.join(', ')})` : res.message,
+    });
+  };
+
+  const handleCloudPull = async () => {
+    saveCloudConfig({ url: cloudUrl, anonKey: cloudKey });
+    if (!window.confirm('Загрузить данные из облака? ВСЕ локальные данные будут заменены облачными.')) return;
+    setCloudBusy(true);
+    setCloudMsg(null);
+    const res = await pullAllFromCloud();
+    setCloudBusy(false);
+    setCloudMsg({
+      ok: res.success,
+      text: res.success && res.details ? `${res.message} (${res.details.join(', ')})` : res.message,
+    });
+    if (res.success) {
+      setTimeout(() => window.location.reload(), 1400);
+    }
+  };
 
   const handleExport = () => {
     try {
@@ -535,6 +572,86 @@ export default function AdminModal({
                 />
                 <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5">
                   ⚠️ Импорт полностью заменит текущие данные данными из выбранного файла.
+                </p>
+              </div>
+
+              {/* Облачная база данных (Supabase) */}
+              <div className="pt-5 mt-3 border-t border-slate-100 space-y-3">
+                <div className="flex items-center gap-2">
+                  <CloudIcon className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    Облачная база данных (Supabase)
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Синхронизация между устройствами через ваш проект Supabase. Создайте проект на
+                  supabase.com, выполните скрипт <strong>supabase/schema.sql</strong> из репозитория
+                  и вставьте сюда Project URL и anon key (Settings → API).
+                </p>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    id="cloud-url-input"
+                    value={cloudUrl}
+                    onChange={(e) => setCloudUrl(e.target.value)}
+                    placeholder="https://xxxx.supabase.co"
+                    autoComplete="off"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-[11px] font-mono focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                  />
+                  <input
+                    type="text"
+                    id="cloud-key-input"
+                    value={cloudKey}
+                    onChange={(e) => setCloudKey(e.target.value)}
+                    placeholder="anon key (eyJhbGciOi…)"
+                    autoComplete="off"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-[11px] font-mono focus:outline-hidden focus:border-emerald-500 focus:bg-white transition-all text-slate-800"
+                  />
+                </div>
+
+                {cloudMsg && (
+                  <div
+                    className={`text-xs p-3 rounded-xl flex items-start gap-2 border ${
+                      cloudMsg.ok
+                        ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
+                        : 'bg-rose-50 border-rose-100 text-rose-800'
+                    }`}
+                  >
+                    {cloudMsg.ok ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
+                    )}
+                    <span>{cloudMsg.text}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    id="cloud-push-btn"
+                    onClick={handleCloudPush}
+                    disabled={cloudBusy}
+                    className="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-98"
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    {cloudBusy ? 'Подождите…' : 'Отправить в облако'}
+                  </button>
+                  <button
+                    type="button"
+                    id="cloud-pull-btn"
+                    onClick={handleCloudPull}
+                    disabled={cloudBusy}
+                    className="flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 disabled:opacity-50 border border-slate-200 text-slate-700 font-bold text-xs py-2.5 rounded-xl transition-all cursor-pointer active:scale-98"
+                  >
+                    <DownloadCloud className="w-3.5 h-3.5" />
+                    {cloudBusy ? 'Подождите…' : 'Загрузить из облака'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  «Отправить» заменяет данные в облаке локальными; «Загрузить» — наоборот.
+                  Anon key даёт доступ к вашей базе — не публикуйте его.
                 </p>
               </div>
             </form>
