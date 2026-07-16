@@ -23,6 +23,7 @@ import PedigreeTree from './components/PedigreeTree';
 import AdminModal from './components/AdminModal';
 import FarmHistory from './components/FarmHistory';
 import MaresTab from './components/MaresTab';
+import Modal from './components/ui/Modal';
 
 import { 
   LayoutDashboard, 
@@ -1003,10 +1004,15 @@ export default function App() {
         onUpdateCurrentAdmin={handleUpdateCurrentAdmin}
       />
 
-      {/* Reusable non-blocking custom confirmation modal */}
-      {confirmConfig && confirmConfig.isOpen && (
-        <div id="global-custom-confirm-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full overflow-hidden border border-slate-100 flex flex-col p-6 space-y-4">
+      {/* Reusable non-blocking custom confirmation modal (Headless UI Dialog) */}
+      <Modal
+        open={!!confirmConfig?.isOpen}
+        onClose={() => setConfirmConfig(prev => (prev ? { ...prev, isOpen: false } : null))}
+        panelId="global-custom-confirm-modal"
+        panelClassName="bg-white rounded-3xl shadow-xl max-w-sm w-full overflow-hidden border border-slate-100 flex flex-col p-6 space-y-4"
+      >
+        {confirmConfig && (
+          <>
             <div className="text-center">
               <span className="w-12 h-12 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-500 text-xl font-bold animate-pulse">
                 ⚠️
@@ -1017,7 +1023,7 @@ export default function App() {
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setConfirmConfig(null)}
+                onClick={() => setConfirmConfig(prev => (prev ? { ...prev, isOpen: false } : null))}
                 className="flex-1 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-xs cursor-pointer transition-all active:scale-95"
               >
                 Отмена
@@ -1030,9 +1036,9 @@ export default function App() {
                 Подтвердить
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 }

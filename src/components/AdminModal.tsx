@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { User, Lock, Shield, Key, UserPlus, CheckCircle, AlertCircle, X, Edit3, Database, Download, Upload } from 'lucide-react';
 import { exportFarmData, importFarmData } from '../utils/backup';
+import Modal from './ui/Modal';
 
 interface Admin {
   login: string;
@@ -78,8 +79,6 @@ export default function AdminModal({
       setTimeout(() => window.location.reload(), 1200);
     }
   };
-
-  if (!isOpen) return null;
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,11 +167,12 @@ export default function AdminModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div 
-        id="admin-modal-container"
-        className="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden max-h-[90vh]"
-      >
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      panelId="admin-modal-container"
+      panelClassName="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden max-h-[90vh]"
+    >
         {/* Modal Header */}
         <div className="bg-slate-900 px-6 py-5 text-white flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2.5">
@@ -549,7 +549,6 @@ export default function AdminModal({
             </form>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
