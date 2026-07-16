@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Horse, HorseGender } from '../types';
 import HorseDetailModal from './HorseDetailModal';
 import CameraCapture from './CameraCapture';
+import Modal from './ui/Modal';
 import { 
   Heart, 
   Calendar, 
@@ -633,9 +634,14 @@ export default function MaresTab({
       )}
 
       {/* --- BREEDING / COVERING DIALOG --- */}
-      {showBreedingModal && selectedMare && (
-        <div id="breeding-modal" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-100">
+      <Modal
+        open={showBreedingModal && !!selectedMare}
+        onClose={() => { setShowBreedingModal(false); setSelectedMare(null); }}
+        panelId="breeding-modal"
+        panelClassName="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-100"
+      >
+        {selectedMare && (
+          <>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
                 <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
@@ -713,14 +719,19 @@ export default function MaresTab({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* --- BIRTH REGISTRATION DIALOG (ОЖЕРЕБИЛАСЬ) --- */}
-      {showBirthModal && selectedMare && (
-        <div id="birth-modal" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 my-8">
+      <Modal
+        open={showBirthModal && !!selectedMare}
+        onClose={() => { setShowBirthModal(false); setSelectedMare(null); }}
+        panelId="birth-modal"
+        panelClassName="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-100 my-8"
+      >
+        {selectedMare && (
+          <>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
                 <Baby className="w-5 h-5 text-emerald-600" />
@@ -932,9 +943,9 @@ export default function MaresTab({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {selectedDetailHorse && (
         <HorseDetailModal 

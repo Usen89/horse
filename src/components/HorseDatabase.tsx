@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Horse, HorseGender, HorseStatus, Kosek, Vaccination, FatteningRecord, CullRecord } from '../types';
 import CameraCapture from './CameraCapture';
+import Modal from './ui/Modal';
 import { 
   Search, 
   Filter, 
@@ -730,9 +731,12 @@ export default function HorseDatabase({
       {/* --- MODAL DIALOGS --- */}
       
       {/* 1. Modal: Add or Edit Horse */}
-      {(activeModal === 'add' || activeModal === 'edit') && (
-        <div id="horse-form-modal" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4">
+      <Modal
+        open={activeModal === 'add' || activeModal === 'edit'}
+        onClose={() => setActiveModal(null)}
+        panelId="horse-form-modal"
+        panelClassName="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4"
+      >
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-lg">
                 {activeModal === 'add' ? 'Регистрация новой лошади' : `Редактирование: ${targetHorse?.name}`}
@@ -1024,14 +1028,17 @@ export default function HorseDatabase({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {/* 2. Modal: Send to Fattening (Откорм) */}
-      {activeModal === 'fattening' && targetHorse && (
-        <div id="fattening-form-modal" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+      <Modal
+        open={activeModal === 'fattening' && !!targetHorse}
+        onClose={() => setActiveModal(null)}
+        panelId="fattening-form-modal"
+        panelClassName="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4"
+      >
+        {targetHorse && (
+          <>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-lg">Постановка на откорм</h3>
               <button onClick={() => setActiveModal(null)} className="text-slate-400 hover:text-slate-600">✕</button>
@@ -1106,14 +1113,19 @@ export default function HorseDatabase({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* 3. Modal: Cull Horse (Забой) */}
-      {activeModal === 'cull' && targetHorse && (
-        <div id="cull-form-modal" className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+      <Modal
+        open={activeModal === 'cull' && !!targetHorse}
+        onClose={() => setActiveModal(null)}
+        panelId="cull-form-modal"
+        panelClassName="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4"
+      >
+        {targetHorse && (
+          <>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-lg text-rose-700 flex items-center gap-1.5">
                 <AlertTriangle className="w-5 h-5 text-rose-500" /> Регистрация забоя
@@ -1203,9 +1215,9 @@ export default function HorseDatabase({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* Reusable HorseDetailModal to show complete statistics and update photo */}
       {selectedDetailHorse && (

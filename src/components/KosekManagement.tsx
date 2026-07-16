@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Horse, Kosek } from '../types';
 import HorseDetailModal from './HorseDetailModal';
+import Modal from './ui/Modal';
 import { 
   Users, 
   UserPlus, 
@@ -929,9 +930,12 @@ export default function KosekManagement({
       {/* --- MODALS --- */}
 
       {/* Create Kosek Modal */}
-      {showAddModal && (
-        <div id="create-kosek-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-100 animate-fadeIn">
+      <Modal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        panelId="create-kosek-modal"
+        panelClassName="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-100"
+      >
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-lg">Сформировать новый косяк</h3>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
@@ -1007,14 +1011,17 @@ export default function KosekManagement({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Move / Assign Horse to Kosek Modal */}
-      {showMoveModal && targetHorse && (
-        <div id="move-horse-modal" className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-100 animate-fadeIn">
+      <Modal
+        open={showMoveModal && !!targetHorse}
+        onClose={() => setShowMoveModal(false)}
+        panelId="move-horse-modal"
+        panelClassName="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-100"
+      >
+        {targetHorse && (
+          <>
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-base">Определить животное в косяк</h3>
               <button onClick={() => setShowMoveModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
@@ -1066,15 +1073,20 @@ export default function KosekManagement({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* Detailed Preview Modal with full photo & brief summary */}
-      {previewKosek && (
-        <div id="preview-kosek-modal" className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-fadeIn flex flex-col max-h-[90vh]">
-            
+      <Modal
+        open={!!previewKosek}
+        onClose={() => setPreviewKosek(null)}
+        panelId="preview-kosek-modal"
+        backdropClassName="bg-slate-950/70 backdrop-blur-md"
+        panelClassName="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
+      >
+        {previewKosek && (
+          <>
             {/* Full-size photograph of Stallion Leader with a dark gradient overlay */}
             <div className="relative h-56 w-full bg-slate-900 shrink-0">
               <img 
@@ -1268,10 +1280,9 @@ export default function KosekManagement({
                 <span>Корректировать</span>
               </button>
             </div>
-
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       {selectedDetailHorse && (
         <HorseDetailModal 

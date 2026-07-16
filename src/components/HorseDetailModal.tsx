@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Horse } from '../types';
 import CameraCapture from './CameraCapture';
+import Modal from './ui/Modal';
 import { 
   X, 
   Heart, 
@@ -143,9 +144,14 @@ export default function HorseDetailModal({
   };
 
   return (
-    <div id="horse-detail-modal-overlay" className="fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="bg-white rounded-3xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
-        
+    <Modal
+      open={!!horse}
+      onClose={onClose}
+      panelId="horse-detail-modal-overlay"
+      backdropClassName="bg-slate-900/70"
+      panelClassName="bg-white rounded-3xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
+    >
+
         {/* Large Visible Photo Area */}
         <div className="relative h-64 md:h-72 w-full bg-slate-100 shrink-0">
           <img 
@@ -342,10 +348,8 @@ export default function HorseDetailModal({
           </button>
         </div>
 
-      </div>
-
       {showCamera && (
-        <CameraCapture 
+        <CameraCapture
           onCapture={(dataUrl) => {
             if (onUpdateHorse) {
               onUpdateHorse(horse.id, { imageUrl: dataUrl });
@@ -356,6 +360,6 @@ export default function HorseDetailModal({
           onClose={() => setShowCamera(false)}
         />
       )}
-    </div>
+    </Modal>
   );
 }
