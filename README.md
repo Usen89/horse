@@ -64,6 +64,22 @@ npm run preview  # локальный просмотр собранной вер
 npm run lint     # проверка типов (tsc --noEmit)
 ```
 
+## Деплой (GitHub Pages)
+
+Приложение автоматически публикуется на **GitHub Pages** при каждом пуше в ветку `main` —
+через workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+🔗 **Живая версия:** https://usen89.github.io/horse/
+
+Как это работает:
+
+- CI собирает проект с базовым путём `/horse/` (через переменную `DEPLOY_BASE`), поэтому
+  локальный запуск и AI Studio продолжают работать с корневым путём `/` без изменений.
+- Готовая сборка `dist/` публикуется на Pages.
+
+Первичная настройка (один раз): в репозитории **Settings → Pages → Build and deployment →
+Source** выбрать **GitHub Actions**.
+
 ## Структура проекта
 
 ```

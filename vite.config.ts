@@ -5,6 +5,9 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // Базовый путь. По умолчанию '/' (локальный запуск и AI Studio).
+    // Для GitHub Pages CI-сборка задаёт DEPLOY_BASE='/horse/'.
+    base: process.env.DEPLOY_BASE || '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
