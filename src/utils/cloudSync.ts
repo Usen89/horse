@@ -20,6 +20,17 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const CFG_URL_KEY = 'supabase_farm_url';
 const CFG_ANON_KEY = 'supabase_farm_anon_key';
 
+/**
+ * Подключение хозяйства по умолчанию (проект Supabase «Табун-Реестр»).
+ * Publishable key безопасен для публикации в клиентском коде по дизайну
+ * Supabase; доступ к данным контролируется политиками RLS. При смене
+ * проекта или ротации ключа значения можно переопределить в настройках
+ * приложения (Профиль → Настройки → Облачная база) — они сохранятся в
+ * localStorage и имеют приоритет над этими значениями.
+ */
+const DEFAULT_CLOUD_URL = 'https://xatyupyuasojqzjvxlfx.supabase.co';
+const DEFAULT_CLOUD_KEY = 'sb_publishable_d12JoK4cQrAVVR057nFXtQ__K5TGfr3';
+
 /** Соответствие: ключ localStorage → таблица Supabase (+ поле id). */
 const SYNC_MAP: { storageKey: string; table: string; idField: string; label: string }[] = [
   { storageKey: 'horses_farm_data', table: 'horses', idField: 'id', label: 'Лошади' },
@@ -37,8 +48,8 @@ export interface CloudConfig {
 
 export function getCloudConfig(): CloudConfig {
   return {
-    url: localStorage.getItem(CFG_URL_KEY) || '',
-    anonKey: localStorage.getItem(CFG_ANON_KEY) || '',
+    url: localStorage.getItem(CFG_URL_KEY) || DEFAULT_CLOUD_URL,
+    anonKey: localStorage.getItem(CFG_ANON_KEY) || DEFAULT_CLOUD_KEY,
   };
 }
 
