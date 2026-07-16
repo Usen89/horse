@@ -24,8 +24,14 @@ interface ModalProps {
  * Переиспользуемое модальное окно на основе Headless UI `Dialog`.
  *
  * Даёт из коробки: захват фокуса (focus trap), закрытие по Esc и клику по фону,
- * блокировку прокрутки фона, корректные ARIA-роли и плавные анимации появления/
- * скрытия. Заменяет самодельные оверлеи `fixed inset-0 …` по всему приложению.
+ * блокировку прокрутки фона и корректные ARIA-роли. Заменяет самодельные
+ * оверлеи `fixed inset-0 …` по всему приложению.
+ *
+ * Анимация появления — через CSS-keyframes (animate-fadeIn / animate-scaleIn),
+ * а НЕ через transition-атрибуты Headless UI: ожидание transitionend ломается,
+ * когда вкладка скрыта (кадры не рисуются), и модалка навсегда застревает.
+ * Keyframe-анимации не блокируют размонтирование — закрытие всегда мгновенное
+ * и надёжное.
  */
 export default function Modal({
   open,
@@ -39,17 +45,12 @@ export default function Modal({
     <Dialog open={open} onClose={onClose} className="relative z-50">
       {/* Затемнённый фон */}
       <DialogBackdrop
-        transition
-        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200 ease-out data-[closed]:opacity-0 ${backdropClassName}`}
+        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-xs animate-fadeIn ${backdropClassName}`}
       />
 
       {/* Центрирующий контейнер с прокруткой при высоком содержимом */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <DialogPanel
-          id={panelId}
-          transition
-          className={`transition duration-200 ease-out data-[closed]:opacity-0 data-[closed]:scale-95 ${panelClassName}`}
-        >
+        <DialogPanel id={panelId} className={`animate-scaleIn ${panelClassName}`}>
           {children}
         </DialogPanel>
       </div>
