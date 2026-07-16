@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Horse, Vaccination } from '../types';
 import { getKazakhCategory } from '../utils/kazakhCategory';
+import { getEffectiveVaccinationStatus } from '../utils/vaccination';
 import { 
   Calendar, 
   ShieldAlert, 
@@ -142,7 +143,8 @@ export default function VaccinationTab({
       v.disease.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.veterinarian.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = selectedStatus === 'all' || v.status === selectedStatus;
+    const matchesStatus =
+      selectedStatus === 'all' || getEffectiveVaccinationStatus(v) === selectedStatus;
 
     return matchesSearch && matchesStatus;
   });
@@ -343,7 +345,8 @@ export default function VaccinationTab({
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
                 {filteredVaccinations.map(vaccine => {
-                  const isOverdue = vaccine.status === 'overdue' || new Date(vaccine.nextDueDate) < new Date();
+                  const effStatus = getEffectiveVaccinationStatus(vaccine);
+                  const isOverdue = effStatus === 'overdue';
                   const targetHorse = horses.find(h => h.id === vaccine.horseId);
                   
                   return (
@@ -375,17 +378,15 @@ export default function VaccinationTab({
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                          vaccine.status === 'completed' 
-                            ? 'bg-emerald-50 text-emerald-700' 
-                            : vaccine.status === 'overdue' || isOverdue
+                          effStatus === 'completed'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : effStatus === 'overdue'
                               ? 'bg-rose-50 text-rose-700'
                               : 'bg-slate-100 text-slate-700'
                         }`}>
-                          {vaccine.status === 'completed' && <ShieldCheck className="w-3.5 h-3.5" />}
-                          {vaccine.status === 'overdue' || isOverdue ? <ShieldAlert className="w-3.5 h-3.5 text-rose-500" /> : null}
-                          {vaccine.status === 'completed' && 'Проведена'}
-                          {vaccine.status === 'planned' && 'Запланирована'}
-                          {vaccine.status === 'overdue' || isOverdue ? 'Просрочена' : null}
+                          {effStatus === 'completed' && <><ShieldCheck className="w-3.5 h-3.5" /> Проведена</>}
+                          {effStatus === 'overdue' && <><ShieldAlert className="w-3.5 h-3.5 text-rose-500" /> Просрочена</>}
+                          {effStatus === 'planned' && 'Запланирована'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -399,8 +400,8 @@ export default function VaccinationTab({
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           
-                          {(vaccine.status === 'planned' || vaccine.status === 'overdue' || isOverdue) && (
-                            <button 
+                          {effStatus !== 'completed' && (
+                            <button
                               id={`mark-complete-btn-${vaccine.id}`}
                               onClick={() => onUpdateVaccinationStatus(vaccine.id, 'completed')}
                               className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-100 font-bold rounded-lg text-[11px]"

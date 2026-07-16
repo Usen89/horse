@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Horse, Kosek, Vaccination, FatteningRecord, CullRecord } from '../types';
+import { getEffectiveVaccinationStatus } from '../utils/vaccination';
 import { 
   TrendingUp, 
   ShieldAlert, 
@@ -48,9 +49,19 @@ export default function Dashboard({
   
   const activeFatteningCount = activeHorses.filter(h => h.status === 'fattening').length;
 
-  // 2. Overdue or upcoming vaccinations
-  const pendingVaccinations = vaccinations.filter(v => v.status === 'overdue' || v.status === 'planned');
-  const overdueVaccinationsCount = vaccinations.filter(v => v.status === 'overdue').length;
+  // 2. Overdue or upcoming vaccinations (эффективный статус учитывает срок ревакцинации)
+  const pendingVaccinations = vaccinations
+    .filter(v => getEffectiveVaccinationStatus(v) !== 'completed')
+    // Просроченные — вперёд, затем по возрастанию срока ревакцинации
+    .sort((a, b) => {
+      const aOverdue = getEffectiveVaccinationStatus(a) === 'overdue' ? 0 : 1;
+      const bOverdue = getEffectiveVaccinationStatus(b) === 'overdue' ? 0 : 1;
+      if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+      return new Date(a.nextDueDate).getTime() - new Date(b.nextDueDate).getTime();
+    });
+  const overdueVaccinationsCount = vaccinations.filter(
+    v => getEffectiveVaccinationStatus(v) === 'overdue'
+  ).length;
 
   // 3. Stallion - Herd (Kosek) assignment mapping
   const kosekDetails = koseks.map(k => {
@@ -442,7 +453,7 @@ export default function Dashboard({
 
               <div className="space-y-3">
                 {pendingVaccinations.slice(0, 4).map(vaccine => {
-                  const isOverdue = vaccine.status === 'overdue' || new Date(vaccine.nextDueDate) < new Date();
+                  const isOverdue = getEffectiveVaccinationStatus(vaccine) === 'overdue';
                   return (
                     <div 
                       key={vaccine.id} 
