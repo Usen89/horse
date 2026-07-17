@@ -14,6 +14,7 @@ import {
   History,
   ChevronRight,
   Database,
+  LogOut,
 } from 'lucide-react';
 
 interface Admin {
@@ -29,6 +30,7 @@ interface ProfileTabProps {
   culls: CullRecord[];
   onNavigate: (tab: string) => void;
   onOpenAdminSettings: () => void;
+  onLogout: () => void;
 }
 
 /**
@@ -44,6 +46,7 @@ export default function ProfileTab({
   culls,
   onNavigate,
   onOpenAdminSettings,
+  onLogout,
 }: ProfileTabProps) {
   const fatteningCount = horses.filter(h => h.status === 'fattening').length;
   const overdueVaccines = vaccinations.filter(
@@ -165,6 +168,16 @@ export default function ProfileTab({
           </div>
         </div>
       </div>
+
+      {/* Выход из учётной записи */}
+      <button
+        id="profile-logout-btn"
+        onClick={onLogout}
+        className="w-full flex items-center justify-center gap-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-rose-600 font-bold text-sm py-3 rounded-2xl transition-all cursor-pointer active:scale-98 shadow-xs"
+      >
+        <LogOut className="w-4 h-4" />
+        Выйти из учётной записи
+      </button>
 
       <p className="text-center text-[10px] text-slate-300 font-semibold pb-2">
         © 2026 Табун-Реестр · Зоотехнический учёт

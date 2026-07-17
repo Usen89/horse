@@ -26,6 +26,9 @@ import MaresTab from './components/MaresTab';
 import Modal from './components/ui/Modal';
 import Logo from './components/ui/Logo';
 import ProfileTab from './components/ProfileTab';
+import AuthGate from './components/AuthGate';
+import { getCurrentSession, onAuthChange, getUserProfile, signOutUser } from './utils/auth';
+import type { Session } from '@supabase/supabase-js';
 
 import { 
   LayoutDashboard, 
@@ -160,6 +163,55 @@ export default function App() {
   });
   const [allAdmins, setAllAdmins] = useState<Admin[]>([]);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+
+  // Authentication (Supabase Auth) states
+  const [session, setSession] = useState<Session | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    // Профиль вошедшего пользователя становится текущим администратором
+    const applyProfile = async (s: Session | null) => {
+      if (!s) return;
+      try {
+        const profile = await getUserProfile(s);
+        if (!active) return;
+        setCurrentAdmin({
+          login: profile.email,
+          name: profile.name,
+          role: profile.role,
+          code: '',
+        });
+      } catch {
+        /* ignore — оставляем текущее имя */
+      }
+    };
+
+    getCurrentSession().then((s) => {
+      if (!active) return;
+      setSession(s);
+      setAuthChecked(true);
+      applyProfile(s);
+    });
+
+    const unsub = onAuthChange((s) => {
+      setSession(s);
+      setAuthChecked(true);
+      applyProfile(s);
+    });
+
+    return () => {
+      active = false;
+      unsub();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await signOutUser();
+    setSession(null);
+    setActiveTab('dashboard');
+  };
 
   // Load from local storage or seed
   useEffect(() => {
@@ -606,9 +658,22 @@ export default function App() {
     saveState('farm_administrators', updatedList);
   };
 
+  // Пока проверяем сессию — заставка; без сессии — экран входа/регистрации
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen w-full bg-slate-900 flex flex-col items-center justify-center gap-4">
+        <Logo className="w-14 h-14 animate-pulse" />
+        <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">Загрузка…</p>
+      </div>
+    );
+  }
+  if (!session) {
+    return <AuthGate />;
+  }
+
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden">
-      
+
       {/* LEFT SIDEBAR - Sleek Dark Theme (только десктоп; на мобильных — нижняя навигация) */}
       <aside className="hidden md:flex w-64 bg-slate-900 flex-col text-slate-300 border-r border-slate-800 shrink-0">
         {/* Logo and Brand Title */}
@@ -928,6 +993,7 @@ export default function App() {
               culls={culls}
               onNavigate={handleTabChange}
               onOpenAdminSettings={() => setIsAdminModalOpen(true)}
+              onLogout={handleLogout}
             />
           )}
 
