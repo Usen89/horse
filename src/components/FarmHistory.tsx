@@ -39,53 +39,9 @@ interface FarmHistoryProps {
   onRequestConfirmation?: (title: string, message: string, onConfirm: () => void) => void;
 }
 
-const INITIAL_EVENTS: HistoryEvent[] = [
-  {
-    id: 'e-1',
-    date: '2026-07-10',
-    category: 'birth',
-    title: 'Рождение жеребенка',
-    description: 'В семействе Кокжала родилась кобылка Айсары от кобылы Актамак. Состояние новорожденного и матери отличное.',
-    horseName: 'Айсары',
-    operator: 'Ержан Усенов'
-  },
-  {
-    id: 'e-2',
-    date: '2026-07-08',
-    category: 'veterinary',
-    title: 'Плановая вакцинация',
-    description: 'Проведена обязательная вакцинация косяка Кокжала против сибирской язвы ветеринаром С. Ахметовым.',
-    horseName: 'Косяк Кокжала',
-    operator: 'Ержан Усенов'
-  },
-  {
-    id: 'e-3',
-    date: '2026-07-05',
-    category: 'fattening',
-    title: 'Постановка на откорм',
-    description: 'Жеребец Тайбуры поставлен на интенсивный стойловый откорм с начальным весом 410 кг.',
-    horseName: 'Тайбуры',
-    operator: 'Ержан Усенов'
-  },
-  {
-    id: 'e-4',
-    date: '2026-07-01',
-    category: 'movement',
-    title: 'Формирование нового семейства',
-    description: 'Зарегистрировано новое семейство во главе с жеребцом-лидером Лашином. Выделен сектор Западного пастбища.',
-    horseName: 'Семейство Лашина',
-    operator: 'Асхат Калиев'
-  },
-  {
-    id: 'e-5',
-    date: '2026-06-25',
-    category: 'slaughter',
-    title: 'Плановый согым (забой)',
-    description: 'Произведен вынужденный забой мерина Кулагер по возрасту. Выход чистого мяса составил 280 кг.',
-    horseName: 'Кулагер',
-    operator: 'Ержан Усенов'
-  }
-];
+// Проект с чистого листа — демо-события удалены. История наполняется
+// пользователем вручную и автоматически по мере работы с хозяйством.
+const INITIAL_EVENTS: HistoryEvent[] = [];
 
 export default function FarmHistory({ horses, koseks, currentAdminName, onRequestConfirmation }: FarmHistoryProps) {
   const [events, setEvents] = useState<HistoryEvent[]>([]);

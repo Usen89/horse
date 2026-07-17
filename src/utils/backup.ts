@@ -25,6 +25,20 @@ export const FARM_STORAGE_KEYS = [
 const BACKUP_APP_ID = 'tabun-reestr';
 const BACKUP_VERSION = 1;
 
+/** Дополнительные ключи данных хозяйства (кроме FARM_STORAGE_KEYS). */
+const EXTRA_FARM_KEYS = ['farm_history_events'];
+
+/**
+ * Полностью очищает данные хозяйства в этом браузере (чистый лист).
+ * НЕ трогает авторизацию и подключение к облаку — пользователь остаётся
+ * в системе, настройки Supabase сохраняются.
+ */
+export function clearFarmData(): void {
+  for (const key of [...FARM_STORAGE_KEYS, ...EXTRA_FARM_KEYS]) {
+    localStorage.removeItem(key);
+  }
+}
+
 export interface FarmBackup {
   app: string;
   version: number;

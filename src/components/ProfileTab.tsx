@@ -6,6 +6,7 @@
 import React from 'react';
 import { Horse, Vaccination, CullRecord } from '../types';
 import { getEffectiveVaccinationStatus } from '../utils/vaccination';
+import { clearFarmData } from '../utils/backup';
 import {
   Settings,
   Utensils,
@@ -167,6 +168,19 @@ export default function ProfileTab({
             Резервная копия — в <button onClick={onOpenAdminSettings} className="text-emerald-700 font-bold underline underline-offset-2 cursor-pointer">Настройках</button> (вкладка «Настройки» → Экспорт).
           </div>
         </div>
+
+        <button
+          id="profile-clear-data-btn"
+          onClick={() => {
+            if (window.confirm('Очистить ВСЕ данные хозяйства в этом браузере (лошади, косяки, вакцинация, откорм, забой, история)? Действие необратимо. Рекомендуем сначала сделать экспорт.')) {
+              clearFarmData();
+              window.location.reload();
+            }
+          }}
+          className="mt-3 w-full text-center text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-100 hover:border-rose-200 rounded-2xl py-2.5 transition-all cursor-pointer active:scale-98"
+        >
+          Очистить данные хозяйства (чистый лист)
+        </button>
       </div>
 
       {/* Выход из учётной записи */}

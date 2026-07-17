@@ -53,11 +53,9 @@ interface Admin {
   code: string;
 }
 
-const DEFAULT_ADMINS: Admin[] = [
-  { login: 'yerzhan', name: 'Ержан Усенов', role: 'Главный зоотехник-селекционер', code: '1989' },
-  { login: 'admin', name: 'Администратор Т.', role: 'Зоотехник', code: '1234' },
-  { login: 'ahmetov', name: 'Д-р Ахметов К. С.', role: 'Ветеринарный врач', code: '2026' }
-];
+// Проект с чистого листа — предустановленных администраторов нет.
+// Личность пользователя определяется авторизацией (Supabase Auth).
+const DEFAULT_ADMINS: Admin[] = [];
 
 export default function App() {
   // 1. Core States loaded from LocalStorage
@@ -154,12 +152,12 @@ export default function App() {
     };
   }, []);
 
-  // Administrator states
+  // Administrator states (реальная личность приходит из авторизации)
   const [currentAdmin, setCurrentAdmin] = useState<Admin>({
-    login: 'yerzhan',
-    name: 'Ержан Усенов',
-    role: 'Главный зоотехник-селекционер',
-    code: '1989'
+    login: '',
+    name: 'Пользователь',
+    role: 'Зоотехник',
+    code: ''
   });
   const [allAdmins, setAllAdmins] = useState<Admin[]>([]);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -213,118 +211,29 @@ export default function App() {
     setActiveTab('dashboard');
   };
 
-  // Load from local storage or seed
+  // Load from local storage (проект стартует пустым — сиды пустые)
   useEffect(() => {
-    const savedHorses = localStorage.getItem('horses_farm_data');
-    const savedKoseks = localStorage.getItem('koseks_farm_data');
-    const savedVaccines = localStorage.getItem('vaccinations_farm_data');
-    const savedFattenings = localStorage.getItem('fattenings_farm_data');
-    const savedCulls = localStorage.getItem('culls_farm_data');
-
-    if (savedHorses) {
-      const parsed = JSON.parse(savedHorses);
-      // Migrate stallion images to the new premium ones if they use the old ones
-      const migrated = parsed.map((h: Horse) => {
-        if (h.id === 'h-stallion-1' && (h.imageUrl?.includes('photo-1534447677768-be436bb09401') || !h.imageUrl)) {
-          return { ...h, imageUrl: 'https://images.unsplash.com/photo-1501472312651-726afd116ff1?w=800&auto=format&fit=crop&q=80' };
+    const readList = <T,>(key: string, fallback: T[]): T[] => {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        try {
+          return JSON.parse(saved) as T[];
+        } catch {
+          return fallback;
         }
-        if (h.id === 'h-stallion-2' && (h.imageUrl?.includes('photo-1553284965-83fd3e82fa5a') || !h.imageUrl)) {
-          return { ...h, imageUrl: 'https://images.unsplash.com/photo-1598974357801-cbca100e6563?w=800&auto=format&fit=crop&q=80' };
-        }
-        if (h.id === 'h-stallion-3' && (h.imageUrl?.includes('photo-1598974357801-cbca100e6563') || !h.imageUrl)) {
-          return { ...h, imageUrl: 'https://images.unsplash.com/photo-1601758174114-e711c0cbaa69?w=800&auto=format&fit=crop&q=80' };
-        }
-        if (h.id === 'h-stallion-4' && (h.imageUrl?.includes('photo-1599819811279-d5ad9cccf838') || !h.imageUrl)) {
-          return { ...h, imageUrl: 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=800&auto=format&fit=crop&q=80' };
-        }
-        return h;
-      });
-
-      // Crucial: Auto-merge the foals "Кулан" and "Айсапы" if they aren't in the user's existing dataset yet
-      const hasKulan = migrated.some((h: Horse) => h.id === 'h-foal-kulan' || h.name === 'Кулан');
-      const hasAisapy = migrated.some((h: Horse) => h.id === 'h-foal-aisapy' || h.name === 'Айсапы');
-
-      if (!hasKulan) {
-        const kulan = INITIAL_HORSES.find(h => h.id === 'h-foal-kulan');
-        if (kulan) migrated.push(kulan);
       }
-      if (!hasAisapy) {
-        const aisapy = INITIAL_HORSES.find(h => h.id === 'h-foal-aisapy');
-        if (aisapy) migrated.push(aisapy);
-      }
+      return fallback;
+    };
 
-      setHorses(migrated);
-      localStorage.setItem('horses_farm_data', JSON.stringify(migrated));
-    } else {
-      setHorses(INITIAL_HORSES);
-      localStorage.setItem('horses_farm_data', JSON.stringify(INITIAL_HORSES));
-    }
+    setHorses(readList('horses_farm_data', INITIAL_HORSES));
+    setKoseks(readList('koseks_farm_data', INITIAL_KOSEKS));
+    setVaccinations(readList('vaccinations_farm_data', INITIAL_VACCINATIONS));
+    setFattenings(readList('fattenings_farm_data', INITIAL_FATTENING_RECORDS));
+    setCulls(readList('culls_farm_data', INITIAL_CULL_RECORDS));
 
-    if (savedKoseks) {
-      setKoseks(JSON.parse(savedKoseks));
-    } else {
-      setKoseks(INITIAL_KOSEKS);
-      localStorage.setItem('koseks_farm_data', JSON.stringify(INITIAL_KOSEKS));
-    }
-
-    if (savedVaccines) {
-      let parsedVaccines = JSON.parse(savedVaccines);
-      
-      // Crucial: Auto-merge vaccination schedules for "Кулан" and "Айсапы" if missing
-      const hasKulanVaccine = parsedVaccines.some((v: Vaccination) => v.horseId === 'h-foal-kulan');
-      const hasAisapyVaccine = parsedVaccines.some((v: Vaccination) => v.horseId === 'h-foal-aisapy');
-
-      if (!hasKulanVaccine) {
-        const kulanVacs = INITIAL_VACCINATIONS.filter(v => v.horseId === 'h-foal-kulan');
-        parsedVaccines = [...parsedVaccines, ...kulanVacs];
-      }
-      if (!hasAisapyVaccine) {
-        const aisapyVacs = INITIAL_VACCINATIONS.filter(v => v.horseId === 'h-foal-aisapy');
-        parsedVaccines = [...parsedVaccines, ...aisapyVacs];
-      }
-
-      setVaccinations(parsedVaccines);
-      localStorage.setItem('vaccinations_farm_data', JSON.stringify(parsedVaccines));
-    } else {
-      setVaccinations(INITIAL_VACCINATIONS);
-      localStorage.setItem('vaccinations_farm_data', JSON.stringify(INITIAL_VACCINATIONS));
-    }
-
-    if (savedFattenings) {
-      setFattenings(JSON.parse(savedFattenings));
-    } else {
-      setFattenings(INITIAL_FATTENING_RECORDS);
-      localStorage.setItem('fattenings_farm_data', JSON.stringify(INITIAL_FATTENING_RECORDS));
-    }
-
-    if (savedCulls) {
-      setCulls(JSON.parse(savedCulls));
-    } else {
-      setCulls(INITIAL_CULL_RECORDS);
-      localStorage.setItem('culls_farm_data', JSON.stringify(INITIAL_CULL_RECORDS));
-    }
-
-    // Load or initialize administrators list
+    // Список локальных администраторов (личность — из авторизации)
     const savedAdmins = localStorage.getItem('farm_administrators');
-    let loadedAdmins: Admin[] = [];
-    if (savedAdmins) {
-      loadedAdmins = JSON.parse(savedAdmins);
-      setAllAdmins(loadedAdmins);
-    } else {
-      loadedAdmins = DEFAULT_ADMINS;
-      setAllAdmins(DEFAULT_ADMINS);
-      localStorage.setItem('farm_administrators', JSON.stringify(DEFAULT_ADMINS));
-    }
-
-    // Load or initialize active administrator
-    const savedActiveAdmin = localStorage.getItem('active_administrator');
-    if (savedActiveAdmin) {
-      setCurrentAdmin(JSON.parse(savedActiveAdmin));
-    } else {
-      const defaultActive = loadedAdmins.find(a => a.login === 'yerzhan') || loadedAdmins[0];
-      setCurrentAdmin(defaultActive);
-      localStorage.setItem('active_administrator', JSON.stringify(defaultActive));
-    }
+    setAllAdmins(savedAdmins ? JSON.parse(savedAdmins) : DEFAULT_ADMINS);
   }, []);
 
   // Save changes helper
@@ -357,7 +266,7 @@ export default function App() {
         disease: 'Мыт (Strangles)',
         date: newHorse.birthDate,
         nextDueDate: vaccineDate.toISOString().split('T')[0],
-        veterinarian: 'Д-р Ахметов К. С.',
+        veterinarian: '',
         status: 'planned'
       };
 
