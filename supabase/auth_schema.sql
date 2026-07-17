@@ -12,11 +12,15 @@
 -- Профиль пользователя (1:1 с auth.users)
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  email text,
+  username text,
+  contact_email text,
   name text not null default 'Пользователь',
   role text not null default 'Зоотехник',
   created_at timestamptz not null default now()
 );
+-- Если таблица уже была создана в старой версии — добавляем недостающие колонки
+alter table public.profiles add column if not exists username text;
+alter table public.profiles add column if not exists contact_email text;
 
 alter table public.profiles enable row level security;
 
@@ -41,10 +45,11 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, name, role)
+  insert into public.profiles (id, username, contact_email, name, role)
   values (
     new.id,
-    new.email,
+    coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
+    nullif(new.raw_user_meta_data->>'contact_email', ''),
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
     coalesce(new.raw_user_meta_data->>'role', 'Зоотехник')
   )
@@ -58,10 +63,11 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- Перенос уже зарегистрированных пользователей в profiles (если есть)
-insert into public.profiles (id, email, name, role)
+insert into public.profiles (id, username, contact_email, name, role)
 select
   u.id,
-  u.email,
+  coalesce(u.raw_user_meta_data->>'username', split_part(u.email, '@', 1)),
+  nullif(u.raw_user_meta_data->>'contact_email', ''),
   coalesce(u.raw_user_meta_data->>'name', split_part(u.email, '@', 1)),
   coalesce(u.raw_user_meta_data->>'role', 'Зоотехник')
 from auth.users u

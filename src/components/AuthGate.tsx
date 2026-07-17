@@ -5,9 +5,9 @@
 
 import React, { useState } from 'react';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/react';
-import { Mail, Lock, User, Briefcase, LogIn, UserPlus, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, User, Briefcase, AtSign, LogIn, UserPlus, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import Logo from './ui/Logo';
-import { signInUser, signUpUser, resetPassword } from '../utils/auth';
+import { signInUser, signUpUser } from '../utils/auth';
 
 const ROLES = [
   'Зоотехник-селекционер',
@@ -18,8 +18,8 @@ const ROLES = [
 ];
 
 /**
- * Экран авторизации — показывается, пока пользователь не вошёл.
- * Настоящая аутентификация через Supabase Auth (email + пароль).
+ * Экран авторизации. Вход — по имени пользователя (не email); email при
+ * регистрации необязателен. Настоящая аутентификация через Supabase Auth.
  */
 export default function AuthGate() {
   const [tabIndex, setTabIndex] = useState(0);
@@ -28,10 +28,11 @@ export default function AuthGate() {
   const [showPass, setShowPass] = useState(false);
 
   // Вход
-  const [inEmail, setInEmail] = useState('');
+  const [inUser, setInUser] = useState('');
   const [inPass, setInPass] = useState('');
 
   // Регистрация
+  const [upUser, setUpUser] = useState('');
   const [upName, setUpName] = useState('');
   const [upRole, setUpRole] = useState(ROLES[0]);
   const [upEmail, setUpEmail] = useState('');
@@ -46,7 +47,7 @@ export default function AuthGate() {
     e.preventDefault();
     setBusy(true);
     setMsg(null);
-    const res = await signInUser(inEmail, inPass);
+    const res = await signInUser(inUser, inPass);
     setBusy(false);
     if (!res.ok) setMsg({ ok: false, text: res.message });
     // При успехе App поймает onAuthStateChange и покажет приложение.
@@ -54,31 +55,22 @@ export default function AuthGate() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!upUser.trim()) {
+      setMsg({ ok: false, text: 'Придумайте имя пользователя.' });
+      return;
+    }
     if (!upName.trim()) {
       setMsg({ ok: false, text: 'Укажите ваше имя.' });
       return;
     }
     setBusy(true);
     setMsg(null);
-    const res = await signUpUser(upEmail, upPass, upName, upRole);
+    const res = await signUpUser(upUser, upPass, upName, upRole, upEmail);
     setBusy(false);
     setMsg({ ok: res.ok, text: res.message });
-    if (res.ok && res.needConfirm) {
-      // Переключаем на вкладку входа с подставленным email
-      setInEmail(upEmail.trim());
+    if (res.ok && !res.needConfirm) {
+      setInUser(upUser.trim());
     }
-  };
-
-  const handleReset = async () => {
-    if (!inEmail.trim()) {
-      setMsg({ ok: false, text: 'Введите email в поле выше, затем нажмите «Забыли пароль?».' });
-      return;
-    }
-    setBusy(true);
-    setMsg(null);
-    const res = await resetPassword(inEmail);
-    setBusy(false);
-    setMsg({ ok: res.ok, text: res.message });
   };
 
   const inputCls =
@@ -129,14 +121,14 @@ export default function AuthGate() {
               <TabPanel className="focus:outline-hidden">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400" />
+                    <User className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400" />
                     <input
-                      type="email"
+                      type="text"
                       required
-                      autoComplete="email"
-                      value={inEmail}
-                      onChange={(e) => setInEmail(e.target.value)}
-                      placeholder="Email"
+                      autoComplete="username"
+                      value={inUser}
+                      onChange={(e) => setInUser(e.target.value)}
+                      placeholder="Имя пользователя"
                       className={inputCls}
                     />
                   </div>
@@ -168,14 +160,6 @@ export default function AuthGate() {
                   >
                     {busy ? 'Вход…' : 'Войти'}
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="w-full text-center text-[11px] text-slate-400 hover:text-emerald-600 font-semibold cursor-pointer"
-                  >
-                    Забыли пароль?
-                  </button>
                 </form>
               </TabPanel>
 
@@ -184,6 +168,18 @@ export default function AuthGate() {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      autoComplete="username"
+                      value={upUser}
+                      onChange={(e) => setUpUser(e.target.value)}
+                      placeholder="Имя пользователя (логин)"
+                      className={inputCls}
+                    />
+                  </div>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400" />
                     <input
                       type="text"
                       required
@@ -208,14 +204,13 @@ export default function AuthGate() {
                     </select>
                   </div>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400" />
+                    <AtSign className="absolute left-3 top-3 h-4.5 w-4.5 text-slate-400" />
                     <input
                       type="email"
-                      required
                       autoComplete="email"
                       value={upEmail}
                       onChange={(e) => setUpEmail(e.target.value)}
-                      placeholder="Email"
+                      placeholder="Email (необязательно)"
                       className={inputCls}
                     />
                   </div>

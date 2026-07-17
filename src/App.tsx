@@ -178,7 +178,7 @@ export default function App() {
         const profile = await getUserProfile(s);
         if (!active) return;
         setCurrentAdmin({
-          login: profile.email,
+          login: profile.username,
           name: profile.name,
           role: profile.role,
           code: '',
