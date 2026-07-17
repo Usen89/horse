@@ -53,10 +53,6 @@ interface Admin {
   code: string;
 }
 
-// Проект с чистого листа — предустановленных администраторов нет.
-// Личность пользователя определяется авторизацией (Supabase Auth).
-const DEFAULT_ADMINS: Admin[] = [];
-
 export default function App() {
   // 1. Core States loaded from LocalStorage
   const [horses, setHorses] = useState<Horse[]>([]);
@@ -159,7 +155,6 @@ export default function App() {
     role: 'Зоотехник',
     code: ''
   });
-  const [allAdmins, setAllAdmins] = useState<Admin[]>([]);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
   // Authentication (Supabase Auth) states
@@ -230,10 +225,6 @@ export default function App() {
     setVaccinations(readList('vaccinations_farm_data', INITIAL_VACCINATIONS));
     setFattenings(readList('fattenings_farm_data', INITIAL_FATTENING_RECORDS));
     setCulls(readList('culls_farm_data', INITIAL_CULL_RECORDS));
-
-    // Список локальных администраторов (личность — из авторизации)
-    const savedAdmins = localStorage.getItem('farm_administrators');
-    setAllAdmins(savedAdmins ? JSON.parse(savedAdmins) : DEFAULT_ADMINS);
   }, []);
 
   // Save changes helper
@@ -531,40 +522,6 @@ export default function App() {
       case 'pedigree': return `Потомство: ${selectedHorseForPedigree?.name || ''}`;
       default: return 'Панель Управления';
     }
-  };
-
-  // 9. Administrator state actions
-  const handleSwitchAdmin = (login: string, code: string) => {
-    const found = allAdmins.find(a => a.login === login.toLowerCase() && a.code === code);
-    if (found) {
-      setCurrentAdmin(found);
-      saveState('active_administrator', found);
-      return { success: true, message: `Добро пожаловать, ${found.name}!` };
-    }
-    return { success: false, message: 'Неверный логин или код доступа.' };
-  };
-
-  const handleCreateAdmin = (newAdmin: Admin) => {
-    const exists = allAdmins.some(a => a.login === newAdmin.login);
-    if (exists) {
-      return { success: false, message: 'Логин уже занят другим администратором.' };
-    }
-    const updated = [...allAdmins, newAdmin];
-    setAllAdmins(updated);
-    saveState('farm_administrators', updated);
-    setCurrentAdmin(newAdmin);
-    saveState('active_administrator', newAdmin);
-    return { success: true, message: `Профиль ${newAdmin.name} успешно зарегистрирован!` };
-  };
-
-  const handleUpdateCurrentAdmin = (updatedFields: Partial<Admin>) => {
-    const fresh = { ...currentAdmin, ...updatedFields };
-    setCurrentAdmin(fresh);
-    saveState('active_administrator', fresh);
-
-    const updatedList = allAdmins.map(a => a.login === currentAdmin.login ? fresh : a);
-    setAllAdmins(updatedList);
-    saveState('farm_administrators', updatedList);
   };
 
   // Пока проверяем сессию — заставка; без сессии — экран входа/регистрации
@@ -967,15 +924,11 @@ export default function App() {
         })}
       </nav>
 
-      {/* Administrator settings & switching modal */}
+      {/* Настройки (резервные копии и облако) */}
       <AdminModal
         isOpen={isAdminModalOpen}
         onClose={() => setIsAdminModalOpen(false)}
         currentAdmin={currentAdmin}
-        allAdmins={allAdmins}
-        onSwitchAdmin={handleSwitchAdmin}
-        onCreateAdmin={handleCreateAdmin}
-        onUpdateCurrentAdmin={handleUpdateCurrentAdmin}
       />
 
       {/* Reusable non-blocking custom confirmation modal (Headless UI Dialog) */}
