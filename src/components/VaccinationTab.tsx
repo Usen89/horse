@@ -60,7 +60,7 @@ export default function VaccinationTab({
     customDisease: '',
     date: new Date().toISOString().split('T')[0],
     nextDueDate: '',
-    veterinarian: 'Д-р Ахметов К. С.',
+    veterinarian: '',
     status: 'completed' as 'completed' | 'overdue' | 'planned'
   });
 
