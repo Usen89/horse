@@ -8,6 +8,7 @@ import { Horse, HorseGender } from '../types';
 import HorseDetailModal from './HorseDetailModal';
 import CameraCapture from './CameraCapture';
 import Modal from './ui/Modal';
+import { compressImage } from '../utils/image';
 import { 
   Heart, 
   Calendar, 
@@ -888,9 +889,10 @@ export default function MaresTab({
                       const file = e.target.files?.[0];
                       if (file) {
                         const reader = new FileReader();
-                        reader.onloadend = () => {
+                        reader.onloadend = async () => {
                           if (typeof reader.result === 'string') {
-                            setBirthForm({ ...birthForm, imageUrl: reader.result });
+                            const compressed = await compressImage(reader.result);
+                            setBirthForm(prev => ({ ...prev, imageUrl: compressed }));
                           }
                         };
                         reader.readAsDataURL(file);
@@ -957,9 +959,9 @@ export default function MaresTab({
       )}
 
       {showCamera && (
-        <CameraCapture 
+        <CameraCapture
           onCapture={(dataUrl) => {
-            setBirthForm({ ...birthForm, imageUrl: dataUrl });
+            compressImage(dataUrl).then(c => setBirthForm(prev => ({ ...prev, imageUrl: c })));
             setShowCamera(false);
           }}
           onClose={() => setShowCamera(false)}

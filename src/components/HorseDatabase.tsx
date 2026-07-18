@@ -8,6 +8,7 @@ import { Horse, HorseGender, HorseStatus, Kosek, Vaccination, FatteningRecord, C
 import CameraCapture from './CameraCapture';
 import Modal from './ui/Modal';
 import { Switch, Field as SwitchGroup, Label as SwitchLabel } from '@headlessui/react';
+import { compressImage } from '../utils/image';
 import { 
   Search, 
   Filter, 
@@ -973,9 +974,10 @@ export default function HorseDatabase({
                           const file = e.target.files?.[0];
                           if (file) {
                             const reader = new FileReader();
-                            reader.onloadend = () => {
+                            reader.onloadend = async () => {
                               if (typeof reader.result === 'string') {
-                                setHorseForm({ ...horseForm, imageUrl: reader.result });
+                                const compressed = await compressImage(reader.result);
+                                setHorseForm(prev => ({ ...prev, imageUrl: compressed }));
                               }
                             };
                             reader.readAsDataURL(file);
@@ -1290,9 +1292,9 @@ export default function HorseDatabase({
       )}
 
       {showCamera && (
-        <CameraCapture 
+        <CameraCapture
           onCapture={(dataUrl) => {
-            setHorseForm({ ...horseForm, imageUrl: dataUrl });
+            compressImage(dataUrl).then(c => setHorseForm(prev => ({ ...prev, imageUrl: c })));
             setShowCamera(false);
           }}
           onClose={() => setShowCamera(false)}

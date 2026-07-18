@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Horse } from '../types';
 import CameraCapture from './CameraCapture';
 import Modal from './ui/Modal';
+import { compressImage } from '../utils/image';
 import { 
   X, 
   Heart, 
@@ -190,11 +191,12 @@ export default function HorseDetailModal({
                   const file = e.target.files?.[0];
                   if (file) {
                     const reader = new FileReader();
-                    reader.onloadend = () => {
+                    reader.onloadend = async () => {
                       if (typeof reader.result === 'string') {
-                        onUpdateHorse(horse.id, { imageUrl: reader.result });
+                        const compressed = await compressImage(reader.result);
+                        onUpdateHorse(horse.id, { imageUrl: compressed });
                         // Also update the local reference object in current modal
-                        horse.imageUrl = reader.result;
+                        horse.imageUrl = compressed;
                       }
                     };
                     reader.readAsDataURL(file);
@@ -352,8 +354,10 @@ export default function HorseDetailModal({
         <CameraCapture
           onCapture={(dataUrl) => {
             if (onUpdateHorse) {
-              onUpdateHorse(horse.id, { imageUrl: dataUrl });
-              horse.imageUrl = dataUrl;
+              compressImage(dataUrl).then(c => {
+                onUpdateHorse(horse.id, { imageUrl: c });
+                horse.imageUrl = c;
+              });
             }
             setShowCamera(false);
           }}

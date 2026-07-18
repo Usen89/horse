@@ -231,9 +231,15 @@ export default function App() {
     setCulls(readList('culls_farm_data', INITIAL_CULL_RECORDS));
   }, []);
 
-  // Save changes helper
+  // Save changes helper. Устойчив к переполнению хранилища (например,
+  // слишком большое фото) — не роняет приложение в «белый экран».
   const saveState = (key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (e) {
+      console.error('Не удалось сохранить в localStorage:', e);
+      alert('Недостаточно места в браузере для сохранения. Возможно, фотография слишком большая — попробуйте изображение меньшего размера.');
+    }
   };
 
   // 2. Horse State Handlers. Возвращает id созданной лошади — нужно, чтобы
