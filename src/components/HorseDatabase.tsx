@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Horse, HorseGender, HorseStatus, Kosek, Vaccination, FatteningRecord, CullRecord } from '../types';
 import CameraCapture from './CameraCapture';
 import Modal from './ui/Modal';
+import PhotoViewer from './ui/PhotoViewer';
 import { Switch, Field as SwitchGroup, Label as SwitchLabel } from '@headlessui/react';
 import { compressImage } from '../utils/image';
 import { 
@@ -27,7 +28,8 @@ import {
   List,
   ChevronDown,
   Camera,
-  Eye
+  Eye,
+  Maximize2
 } from 'lucide-react';
 import HorseDetailModal from './HorseDetailModal';
 
@@ -65,6 +67,7 @@ export default function HorseDatabase({
   const [targetHorse, setTargetHorse] = useState<Horse | null>(null);
   const [selectedDetailHorse, setSelectedDetailHorse] = useState<Horse | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [viewingPhoto, setViewingPhoto] = useState<{ src: string; name: string } | null>(null);
 
   // Custom coat input states
   const [customCoatInput, setCustomCoatInput] = useState('');
@@ -479,18 +482,23 @@ export default function HorseDatabase({
                   }`}
                 >
                   <div>
-                    {/* Header Image section */}
-                    <div 
-                      onClick={() => setSelectedDetailHorse(horse)}
-                      className="relative h-44 bg-slate-100 overflow-hidden cursor-pointer"
-                      title="Нажмите, чтобы просмотреть подробную информацию"
+                    {/* Header Image section — клик открывает фото на просмотр */}
+                    <div
+                      onClick={() => setViewingPhoto({ src: horse.imageUrl || getPlaceholderImage(horse.coat, horse.id), name: horse.name })}
+                      className="relative h-44 bg-slate-100 overflow-hidden cursor-zoom-in"
+                      title="Нажмите, чтобы открыть фото"
                     >
-                      <img 
-                        src={horse.imageUrl || getPlaceholderImage(horse.coat, horse.id)} 
+                      <img
+                        src={horse.imageUrl || getPlaceholderImage(horse.coat, horse.id)}
                         alt={horse.name}
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
                       />
+
+                      {/* Иконка увеличения */}
+                      <div className="absolute bottom-2 right-2 bg-slate-900/55 text-white rounded-lg p-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <Maximize2 className="w-3.5 h-3.5" />
+                      </div>
                       
                       {/* Gender Badge */}
                       <div className="absolute top-3 left-3 flex gap-1">
@@ -674,9 +682,13 @@ export default function HorseDatabase({
                     >
                       <td className="py-3.5 px-4 font-semibold text-slate-900">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-slate-100 overflow-hidden shrink-0">
-                            <img 
-                              src={horse.imageUrl || getPlaceholderImage(horse.coat, horse.id)} 
+                          <div
+                            onClick={() => setViewingPhoto({ src: horse.imageUrl || getPlaceholderImage(horse.coat, horse.id), name: horse.name })}
+                            className="w-7 h-7 rounded-full bg-slate-100 overflow-hidden shrink-0 cursor-zoom-in"
+                            title="Открыть фото"
+                          >
+                            <img
+                              src={horse.imageUrl || getPlaceholderImage(horse.coat, horse.id)}
                               alt={horse.name}
                               referrerPolicy="no-referrer"
                               className="w-full h-full object-cover"
@@ -1300,6 +1312,13 @@ export default function HorseDatabase({
           onClose={() => setShowCamera(false)}
         />
       )}
+
+      {/* Просмотр фото (лайтбокс) */}
+      <PhotoViewer
+        src={viewingPhoto?.src || null}
+        alt={viewingPhoto?.name}
+        onClose={() => setViewingPhoto(null)}
+      />
 
     </div>
   );

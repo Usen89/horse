@@ -738,14 +738,14 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* На мобильных верхний блок скрыт (настройки — во вкладке «Профиль») */}
+          <div className="hidden md:flex items-center gap-4">
             <div className="flex items-center gap-2 bg-emerald-50 text-emerald-800 text-[11px] px-3 py-1.5 rounded-full font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="hidden xs:inline">Авто-сохранение: Локальное</span>
-              <span className="xs:hidden">Локальное</span>
+              <span>Авто-сохранение: Локальное</span>
             </div>
 
-            <div className="h-8 w-px bg-slate-200 hidden xs:block" />
+            <div className="h-8 w-px bg-slate-200" />
 
             <button 
               id="open-admin-modal-btn"

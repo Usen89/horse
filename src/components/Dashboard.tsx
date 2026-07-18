@@ -16,8 +16,7 @@ import {
   FileText, 
   Plus, 
   ArrowRight,
-  Sparkles,
-  Info
+  Sparkles
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -201,69 +200,29 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* Grid of Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: Total Horses */}
-        <div id="metric-total-horses" className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs text-slate-500 font-medium">Общее поголовье</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{totalHorsesCount}</h3>
-            <p className="text-[11px] text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
-              <span>Активные лошади</span>
-            </p>
+      {/* Compact key metrics (иконки) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { id: 'metric-total-horses', icon: Activity, val: String(totalHorsesCount), label: 'Поголовье', cls: 'bg-emerald-50 text-emerald-600' },
+          { id: 'metric-stallions', icon: UserCheck, val: String(stallionsCount), label: 'Жеребцы', cls: 'bg-sky-50 text-sky-600' },
+          { id: 'metric-pregnant-mares', icon: TrendingUp, val: String(pregnantCount), label: 'Беременные', cls: 'bg-rose-50 text-rose-500' },
+          { id: 'metric-vaccinations', icon: Calendar, val: `${overdueVaccinationsCount}/${pendingVaccinations.length}`, label: 'Просрочено', cls: 'bg-amber-50 text-amber-600', onClick: () => onNavigate('vaccinations') },
+        ].map(({ id, icon: Icon, val, label, cls, onClick }) => (
+          <div
+            key={id}
+            id={id}
+            onClick={onClick}
+            className={`bg-white p-3 rounded-2xl border border-slate-100 shadow-xs flex items-center gap-2.5 ${onClick ? 'cursor-pointer hover:border-emerald-200 active:scale-98 transition-all' : ''}`}
+          >
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${cls}`}>
+              <Icon className="w-4.5 h-4.5" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-lg font-black text-slate-900 leading-none">{val}</div>
+              <div className="text-[10px] text-slate-400 font-bold truncate mt-0.5">{label}</div>
+            </div>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
-            <Activity className="w-6 h-6" />
-          </div>
-        </div>
-
-        {/* Metric 2: Stallions */}
-        <div id="metric-stallions" className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs text-slate-500 font-medium">Активные жеребцы</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{stallionsCount}</h3>
-            <p className="text-[11px] text-slate-500 mt-1.5">
-              Жеребцы-производители
-            </p>
-          </div>
-          <div className="p-3 bg-sky-50 text-sky-600 rounded-2xl">
-            <UserCheck className="w-6 h-6" />
-          </div>
-        </div>
-
-        {/* Metric 3: Pregnant Mares */}
-        <div id="metric-pregnant-mares" className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs text-slate-500 font-medium">Беременные кобылы</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">{pregnantCount}</h3>
-            <p className="text-[11px] text-amber-600 font-medium mt-1.5 flex items-center gap-1">
-              <span>Требуют ветеринарный надзор</span>
-            </p>
-          </div>
-          <div className="p-3 bg-rose-50 text-rose-500 rounded-2xl">
-            <TrendingUp className="w-6 h-6" />
-          </div>
-        </div>
-
-        {/* Metric 4: Vaccination Alerts */}
-        <div id="metric-vaccinations" className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs text-slate-500 font-medium">Вакцинация (просрочено)</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-1">
-              {overdueVaccinationsCount} <span className="text-sm font-normal text-slate-400">/ {pendingVaccinations.length}</span>
-            </h3>
-            <p className="text-[11px] text-rose-600 font-medium mt-1.5 flex items-center gap-1">
-              {overdueVaccinationsCount > 0 ? (
-                <span className="flex items-center gap-0.5"><ShieldAlert className="w-3 h-3" /> Срочно привить!</span>
-              ) : (
-                <span>Все по плану</span>
-              )}
-            </p>
-          </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
-            <Calendar className="w-6 h-6" />
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Main Grid Content */}
@@ -289,62 +248,52 @@ export default function Dashboard({
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Косяки — компактный список в столбец */}
+            <div className="space-y-2">
+              {kosekDetails.length === 0 && (
+                <div className="text-center py-6 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl">
+                  Косяки пока не созданы.
+                </div>
+              )}
               {kosekDetails.map(({ kosek, stallion, maresCount, totalCount }) => (
-                <div 
-                  key={kosek.id} 
+                <div
+                  key={kosek.id}
                   id={`kosek-map-${kosek.id}`}
-                  className="bg-slate-50/50 hover:bg-slate-50 transition-all rounded-xl p-4 border border-slate-100 flex flex-col justify-between"
+                  onClick={() => stallion && onSelectHorse(stallion.id)}
+                  className={`bg-slate-50/50 hover:bg-slate-50 transition-all rounded-xl p-3 border border-slate-100 flex items-center gap-3 ${stallion ? 'cursor-pointer' : ''}`}
                 >
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  {/* Фото вожака */}
+                  {stallion ? (
+                    <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                      <img
+                        src={stallion.imageUrl || "https://images.unsplash.com/photo-1598974357801-cbca100e6563?w=100&auto=format&fit=crop&q=80"}
+                        alt={stallion.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                      <ShieldAlert className="w-4.5 h-4.5 text-amber-500" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                       <h4 className="font-bold text-slate-800 text-sm truncate">{kosek.name}</h4>
                     </div>
-                    
-                    {stallion ? (
-                      <div className="bg-white p-2.5 rounded-lg border border-slate-100 flex items-center gap-2.5 mb-3 cursor-pointer hover:border-emerald-200" onClick={() => onSelectHorse(stallion.id)}>
-                        <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden shrink-0">
-                          <img 
-                            src={stallion.imageUrl || "https://images.unsplash.com/photo-1598974357801-cbca100e6563?w=100&auto=format&fit=crop&q=80"} 
-                            alt={stallion.name} 
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="text-[9px] uppercase tracking-wider font-semibold text-sky-600 block">Жеребец-вожак</span>
-                          <span className="font-semibold text-xs text-slate-800 truncate block">{stallion.name}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-100 text-amber-800 text-xs flex items-center gap-1.5 mb-3">
-                        <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>Косяк без вожака!</span>
-                      </div>
-                    )}
+                    <span className="text-[11px] text-slate-500 truncate block mt-0.5">
+                      {stallion ? <>Вожак: <span className="font-semibold text-slate-700">{stallion.name}</span></> : 'Без вожака'}
+                    </span>
                   </div>
 
-                  <div className="border-t border-slate-100 pt-3 flex justify-between text-xs text-slate-500">
-                    <div>
-                      <span className="block font-medium text-slate-800">{maresCount}</span>
-                      <span>кобыл</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-medium text-slate-800">{totalCount}</span>
-                      <span>всего голов</span>
-                    </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-black text-slate-800 leading-none">{totalCount}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">{maresCount} кобыл</div>
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* International advice for Tabun grouping */}
-            <div className="mt-4 p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-100/60 flex gap-2.5 text-xs items-start">
-              <Info className="w-4.5 h-4.5 text-emerald-600 mt-0.5 shrink-0" />
-              <p className="leading-relaxed">
-                <strong>Опыт свободного табунного разведения:</strong> Формирование изолированных косяков во главе с сильным жеребцом гарантирует естественное воспроизводство с репродуктивным выходом свыше 90%. Избегайте присутствия двух половозрелых жеребцов в одном косяке для исключения травм и споров за доминирование.
-              </p>
             </div>
           </div>
 
