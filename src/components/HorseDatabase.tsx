@@ -863,12 +863,12 @@ export default function HorseDatabase({
 
                 {/* Owner */}
                 <div>
-                  <label className="block text-slate-500 font-medium mb-1">Владелец <span className="text-rose-500">*</span></label>
-                  <input 
+                  <label className="block text-slate-500 font-medium mb-1">Владелец</label>
+                  <input
                     type="text"
-                    required
                     value={horseForm.owner}
                     onChange={(e) => setHorseForm({ ...horseForm, owner: e.target.value })}
+                    placeholder="Необязательно"
                     className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-slate-50/50 text-xs"
                   />
                 </div>
