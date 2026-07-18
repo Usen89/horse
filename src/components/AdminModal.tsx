@@ -98,10 +98,6 @@ export default function AdminModal({ isOpen, onClose, currentAdmin }: AdminModal
               Резервное копирование данных
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            Данные хранятся в этом браузере. Периодически сохраняйте копию, чтобы не потерять
-            реестр при очистке браузера или чтобы перенести его на другое устройство.
-          </p>
 
           {dataMsg && (
             <div className={`text-xs p-3 rounded-xl flex items-start gap-2 border ${dataMsg.ok ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-rose-50 border-rose-100 text-rose-800'}`}>

@@ -512,24 +512,6 @@ export default function Dashboard({
             )}
           </div>
 
-          {/* Farm Quick Stats Insights */}
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs text-slate-600 space-y-2.5">
-            <h4 className="font-semibold text-slate-800 flex items-center gap-1">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
-              Статистические показатели хозяйства
-            </h4>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="bg-white p-2 rounded-lg border border-slate-100/60">
-                <span className="text-slate-400 block">Ср. возраст стада:</span>
-                <strong className="text-slate-800 text-sm block mt-0.5">{calculateAverageAge()} лет</strong>
-              </div>
-              <div className="bg-white p-2 rounded-lg border border-slate-100/60">
-                <span className="text-slate-400 block">Забито / Согым (всего):</span>
-                <strong className="text-slate-800 text-sm block mt-0.5">{culls.length} голов ({totalSlaughteredWeight} кг)</strong>
-              </div>
-            </div>
-          </div>
-
           {/* Разбивка поголовья по возрастным категориям */}
           <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs">
             <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-1.5">

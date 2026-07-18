@@ -10,7 +10,7 @@ import Modal from './ui/Modal';
 import PhotoViewer from './ui/PhotoViewer';
 import { Switch, Field as SwitchGroup, Label as SwitchLabel } from '@headlessui/react';
 import { compressImage } from '../utils/image';
-import { isFoal, getSexTypeShort } from '../utils/kazakhCategory';
+import { isFoal, getSexTypeShort, getKazakhCategory } from '../utils/kazakhCategory';
 import { 
   Search, 
   Filter, 
@@ -890,6 +890,20 @@ export default function HorseDatabase({
                     Тип «жеребёнок» определяется по дате рождения (до 1 года). Пол при этом сохраняется.
                   </p>
                 </div>
+
+                {/* Живая возрастная категория по дате рождения */}
+                {horseForm.birthDate && (() => {
+                  const kc = getKazakhCategory(horseForm.birthDate, horseForm.gender);
+                  return (
+                    <div className="col-span-2 flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Возрастная категория:</span>
+                      <span className={`inline-flex items-center text-[11px] font-black px-2.5 py-1 rounded-full border ${kc.color}`}>
+                        {kc.name}
+                      </span>
+                      <span className="text-[10px] text-slate-500">{kc.description}</span>
+                    </div>
+                  );
+                })()}
 
                 {/* Owner */}
                 <div>

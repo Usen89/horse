@@ -116,10 +116,6 @@ export default function ProfileTab({
           <p className="text-xs text-slate-500 font-semibold mt-0.5">
             {currentAdmin.role} · Логин: <span className="text-slate-700">{currentAdmin.login}</span>
           </p>
-          <div className="flex items-center gap-2 mt-3 text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1.5 w-fit">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            База данных активна · Хозяйство «Алтын Тулпар»
-          </div>
         </div>
       </div>
 
