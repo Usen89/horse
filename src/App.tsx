@@ -28,6 +28,7 @@ import Logo from './components/ui/Logo';
 import ProfileTab from './components/ProfileTab';
 import AuthGate from './components/AuthGate';
 import { getCurrentSession, onAuthChange, getUserProfile, signOutUser } from './utils/auth';
+import { purgeMockData } from './utils/purgeMock';
 import type { Session } from '@supabase/supabase-js';
 
 import { 
@@ -208,6 +209,9 @@ export default function App() {
 
   // Load from local storage (проект стартует пустым — сиды пустые)
   useEffect(() => {
+    // Точечно удаляем демо-данные, оставшиеся в браузере с прошлых версий
+    purgeMockData();
+
     const readList = <T,>(key: string, fallback: T[]): T[] => {
       const saved = localStorage.getItem(key);
       if (saved) {
@@ -232,11 +236,12 @@ export default function App() {
     localStorage.setItem(key, JSON.stringify(data));
   };
 
-  // 2. Horse State Handlers
-  const handleAddHorse = (newHorse: Omit<Horse, 'id'>) => {
-    const id = `h-${Date.now()}`;
+  // 2. Horse State Handlers. Возвращает id созданной лошади — нужно, чтобы
+  // при добавлении жеребца «на лету» сразу привязать к нему потомка.
+  const handleAddHorse = (newHorse: Omit<Horse, 'id'>): string => {
+    const id = `h-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const horseWithId: Horse = { ...newHorse, id };
-    
+
     setHorses(prev => {
       const updated = [horseWithId, ...prev];
       saveState('horses_farm_data', updated);
@@ -267,6 +272,8 @@ export default function App() {
         return updatedVaccines;
       });
     }
+
+    return id;
   };
 
   const handleUpdateHorse = (id: string, updatedFields: Partial<Horse>) => {

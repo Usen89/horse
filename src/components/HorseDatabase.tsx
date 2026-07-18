@@ -33,7 +33,7 @@ import HorseDetailModal from './HorseDetailModal';
 interface HorseDatabaseProps {
   horses: Horse[];
   koseks: Kosek[];
-  onAddHorse: (horse: Omit<Horse, 'id'>) => void;
+  onAddHorse: (horse: Omit<Horse, 'id'>) => string;
   onUpdateHorse: (id: string, updated: Partial<Horse>) => void;
   onDeleteHorse: (id: string) => void;
   onSendToFattening: (horseId: string, record: Omit<FatteningRecord, 'id' | 'horseId' | 'horseName'>) => void;
@@ -68,6 +68,10 @@ export default function HorseDatabase({
   // Custom coat input states
   const [customCoatInput, setCustomCoatInput] = useState('');
   const [isCustomCoatSelected, setIsCustomCoatSelected] = useState(false);
+
+  // Добавление нового жеребца (отца) прямо из формы регистрации
+  const [newSireName, setNewSireName] = useState('');
+  const [newSireCoat, setNewSireCoat] = useState('');
 
   // Form Fields for Add/Edit Horse
   const [horseForm, setHorseForm] = useState({
@@ -132,6 +136,8 @@ export default function HorseDatabase({
   const openAddModal = () => {
     setIsCustomCoatSelected(false);
     setCustomCoatInput('');
+    setNewSireName('');
+    setNewSireCoat('');
     setHorseForm({
       name: '',
       coat: 'Гнедая',
@@ -153,6 +159,8 @@ export default function HorseDatabase({
 
   const openEditModal = (horse: Horse) => {
     setTargetHorse(horse);
+    setNewSireName('');
+    setNewSireCoat('');
     const standardCoats = ['Гнедая', 'Вороная', 'Серая', 'Рыжая', 'Саврасая', 'Буланая', 'Чубарая'];
     const isCustom = !standardCoats.includes(horse.coat);
     setIsCustomCoatSelected(isCustom);
@@ -205,7 +213,31 @@ export default function HorseDatabase({
 
     const actualCoat = isCustomCoatSelected ? (customCoatInput.trim() || 'Другая') : horseForm.coat;
 
-    const sire = horses.find(h => h.id === horseForm.sireId);
+    // Отец: существующий жеребец, либо создаём нового прямо сейчас
+    let resolvedSireId: string | null = null;
+    let resolvedSireName: string | undefined;
+    if (horseForm.sireId === '__new__') {
+      if (newSireName.trim()) {
+        resolvedSireId = onAddHorse({
+          name: newSireName.trim(),
+          coat: newSireCoat.trim() || 'Не указана',
+          birthDate: new Date().toISOString().split('T')[0],
+          gender: 'stallion',
+          sireId: null,
+          damId: null,
+          owner: horseForm.owner,
+          status: 'active',
+          kosekId: null,
+          notes: 'Добавлен вручную при регистрации потомка'
+        });
+        resolvedSireName = newSireName.trim();
+      }
+    } else if (horseForm.sireId) {
+      const sire = horses.find(h => h.id === horseForm.sireId);
+      resolvedSireId = horseForm.sireId;
+      resolvedSireName = sire ? sire.name : undefined;
+    }
+
     const dam = horses.find(h => h.id === horseForm.damId);
 
     const horsePayload = {
@@ -213,8 +245,8 @@ export default function HorseDatabase({
       coat: actualCoat,
       birthDate: horseForm.birthDate,
       gender: horseForm.gender,
-      sireId: horseForm.sireId || null,
-      sireName: sire ? sire.name : undefined,
+      sireId: resolvedSireId,
+      sireName: resolvedSireName,
       damId: horseForm.damId || null,
       damName: dam ? dam.name : undefined,
       owner: horseForm.owner,
@@ -853,7 +885,31 @@ export default function HorseDatabase({
                     {horses.filter(h => h.gender === 'stallion').map(h => (
                       <option key={h.id} value={h.id}>{h.name} ({h.coat})</option>
                     ))}
+                    <option value="__new__">➕ Добавить нового жеребца…</option>
                   </select>
+
+                  {/* Ввод нового жеребца прямо здесь */}
+                  {horseForm.sireId === '__new__' && (
+                    <div className="mt-2 space-y-2 bg-emerald-50/40 border border-emerald-100 rounded-xl p-2.5 animate-fadeIn">
+                      <input
+                        type="text"
+                        value={newSireName}
+                        onChange={(e) => setNewSireName(e.target.value)}
+                        placeholder="Кличка жеребца *"
+                        className="w-full p-2 border border-emerald-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white text-xs font-semibold text-slate-800"
+                      />
+                      <input
+                        type="text"
+                        value={newSireCoat}
+                        onChange={(e) => setNewSireCoat(e.target.value)}
+                        placeholder="Масть (необязательно)"
+                        className="w-full p-2 border border-emerald-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white text-xs text-slate-800"
+                      />
+                      <p className="text-[10px] text-emerald-800/80 leading-snug">
+                        Новый жеребец будет добавлен в реестр и назначен отцом. Возраст и данные можно уточнить позже в его карточке.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Mother (Dam) */}
