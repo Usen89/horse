@@ -10,6 +10,7 @@ import Modal from './ui/Modal';
 import PhotoViewer from './ui/PhotoViewer';
 import { Switch, Field as SwitchGroup, Label as SwitchLabel } from '@headlessui/react';
 import { compressImage } from '../utils/image';
+import { isFoal, getSexTypeShort } from '../utils/kazakhCategory';
 import { 
   Search, 
   Filter, 
@@ -503,13 +504,15 @@ export default function HorseDatabase({
                       {/* Gender Badge */}
                       <div className="absolute top-3 left-3 flex gap-1">
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-sm ${
-                          horse.gender === 'stallion' 
-                            ? 'bg-sky-500 text-white' 
-                            : horse.gender === 'mare' 
-                              ? 'bg-rose-500 text-white' 
+                          isFoal(horse.birthDate)
+                            ? 'bg-violet-500 text-white'
+                            : horse.gender === 'stallion'
+                            ? 'bg-sky-500 text-white'
+                            : horse.gender === 'mare'
+                              ? 'bg-rose-500 text-white'
                               : 'bg-amber-500 text-white'
                         }`}>
-                          {horse.gender === 'stallion' ? 'Жеребец' : horse.gender === 'mare' ? 'Кобыла' : 'Мерин'}
+                          {getSexTypeShort(horse.birthDate, horse.gender)}
                         </span>
                         
                         {/* Pregnancy Indicator */}
@@ -699,9 +702,9 @@ export default function HorseDatabase({
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          horse.gender === 'stallion' ? 'bg-sky-50 text-sky-700' : horse.gender === 'mare' ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-700'
+                          isFoal(horse.birthDate) ? 'bg-violet-50 text-violet-700' : horse.gender === 'stallion' ? 'bg-sky-50 text-sky-700' : horse.gender === 'mare' ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-700'
                         }`}>
-                          {horse.gender === 'stallion' ? 'Жеребец' : horse.gender === 'mare' ? 'Кобыла' : 'Мерин'}
+                          {getSexTypeShort(horse.birthDate, horse.gender)}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">{horse.coat}</td>
@@ -860,18 +863,32 @@ export default function HorseDatabase({
                   />
                 </div>
 
-                {/* Gender */}
+                {/* Gender / Type (с учётом возраста для жеребят) */}
                 <div>
-                  <label className="block text-slate-500 font-medium mb-1">Пол <span className="text-rose-500">*</span></label>
+                  <label className="block text-slate-500 font-medium mb-1">Пол / Тип <span className="text-rose-500">*</span></label>
                   <select
-                    value={horseForm.gender}
-                    onChange={(e) => setHorseForm({ ...horseForm, gender: e.target.value as HorseGender })}
+                    value={(() => {
+                      const foal = isFoal(horseForm.birthDate);
+                      if (horseForm.gender === 'gelding') return 'gelding';
+                      if (horseForm.gender === 'mare') return foal ? 'foal-f' : 'mare';
+                      return foal ? 'foal-m' : 'stallion';
+                    })()}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      const gender: HorseGender = (v === 'mare' || v === 'foal-f') ? 'mare' : v === 'gelding' ? 'gelding' : 'stallion';
+                      setHorseForm({ ...horseForm, gender });
+                    }}
                     className="w-full p-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-slate-50/50 text-xs cursor-pointer"
                   >
-                    <option value="mare">Кобыла (Mare)</option>
-                    <option value="stallion">Жеребец (Stallion)</option>
-                    <option value="gelding">Мерин (Gelding)</option>
+                    <option value="foal-m">Жеребёнок — мальчик (жеребчик)</option>
+                    <option value="foal-f">Жеребёнок — девочка (кобылка)</option>
+                    <option value="mare">Кобыла (взрослая)</option>
+                    <option value="stallion">Жеребец (взрослый)</option>
+                    <option value="gelding">Мерин</option>
                   </select>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Тип «жеребёнок» определяется по дате рождения (до 1 года). Пол при этом сохраняется.
+                  </p>
                 </div>
 
                 {/* Owner */}

@@ -24,9 +24,10 @@ interface CullLogProps {
   culls: CullRecord[];
   onUpdateCull: (id: string, updatedFields: Partial<CullRecord>) => void;
   onDeleteCull: (id: string) => void;
+  onClearAll: () => void;
 }
 
-export default function CullLog({ culls, onUpdateCull, onDeleteCull }: CullLogProps) {
+export default function CullLog({ culls, onUpdateCull, onDeleteCull, onClearAll }: CullLogProps) {
   // State for editing a cull record
   const [editingCull, setEditingCull] = useState<CullRecord | null>(null);
   const [isEditCustomCoatSelected, setIsEditCustomCoatSelected] = useState(false);
@@ -102,9 +103,22 @@ export default function CullLog({ culls, onUpdateCull, onDeleteCull }: CullLogPr
             </p>
           </div>
         </div>
-        <span className="bg-rose-200 text-rose-900 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
-          Вычтено: {totalCullsCount} голов
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="bg-rose-200 text-rose-900 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+            Вычтено: {totalCullsCount} голов
+          </span>
+          {totalCullsCount > 0 && (
+            <button
+              id="clear-cull-archive-btn"
+              onClick={onClearAll}
+              className="flex items-center gap-1.5 bg-white hover:bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold px-3 py-1.5 rounded-full transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+              title="Удалить все записи архива"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Очистить архив
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Cull Performance Stats */}

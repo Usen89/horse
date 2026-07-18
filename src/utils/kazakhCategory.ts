@@ -3,12 +3,63 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { HorseGender } from '../types';
+import { HorseGender, Horse } from '../types';
 
 export interface KazakhCategory {
   name: string;
   description: string;
   color: string; // Tailwind color classes for badges
+}
+
+/** Возраст в месяцах. Пустая/некорректная дата → Infinity (считаем взрослым). */
+export function ageInMonths(birthDateStr: string): number {
+  if (!birthDateStr) return Infinity;
+  const birth = new Date(birthDateStr);
+  if (isNaN(birth.getTime())) return Infinity;
+  const today = new Date();
+  return (today.getFullYear() - birth.getFullYear()) * 12 + today.getMonth() - birth.getMonth();
+}
+
+/** Жеребёнок — младше 12 месяцев. */
+export function isFoal(birthDateStr: string): boolean {
+  return ageInMonths(birthDateStr) < 12;
+}
+
+/**
+ * Пол/тип для отображения С УЧЁТОМ ВОЗРАСТА. Молодняк до года показывается
+ * как «Жеребёнок (мальчик/девочка)», а не «Жеребец»/«Кобыла».
+ */
+export function getSexTypeShort(birthDateStr: string, gender: HorseGender): string {
+  if (isFoal(birthDateStr)) {
+    if (gender === 'mare') return 'Жеребёнок ♀';
+    if (gender === 'gelding') return 'Жеребёнок';
+    return 'Жеребёнок ♂';
+  }
+  return gender === 'stallion' ? 'Жеребец' : gender === 'mare' ? 'Кобыла' : 'Мерин';
+}
+
+export interface CategoryCounts {
+  foals: number;   // Жеребята (Құлын + Жабағы, до 1 года)
+  tai: number;     // Тай (1–2 года)
+  baital: number;  // Байтал (кобылки 2–3 года)
+  kunan: number;   // Құнан (жеребчики 2–3 года)
+  donen: number;   // Дөнен (3–4 года)
+  adults: number;  // Взрослые (Бие/Айғыр/Ат, 4+)
+}
+
+/** Подсчёт поголовья по традиционным возрастным категориям. */
+export function getCategoryBreakdown(horses: Horse[]): CategoryCounts {
+  const counts: CategoryCounts = { foals: 0, tai: 0, baital: 0, kunan: 0, donen: 0, adults: 0 };
+  for (const h of horses) {
+    const name = getKazakhCategory(h.birthDate, h.gender).name;
+    if (name.startsWith('Құлын') || name.startsWith('Жабағы')) counts.foals++;
+    else if (name.startsWith('Тай')) counts.tai++;
+    else if (name.startsWith('Байтал')) counts.baital++;
+    else if (name.startsWith('Құнан')) counts.kunan++;
+    else if (name.startsWith('Дөнен')) counts.donen++;
+    else counts.adults++;
+  }
+  return counts;
 }
 
 /**

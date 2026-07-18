@@ -6,6 +6,7 @@
 import React from 'react';
 import { Horse, Kosek, Vaccination, FatteningRecord, CullRecord } from '../types';
 import { getEffectiveVaccinationStatus } from '../utils/vaccination';
+import { getCategoryBreakdown } from '../utils/kazakhCategory';
 import { 
   TrendingUp, 
   ShieldAlert, 
@@ -47,6 +48,9 @@ export default function Dashboard({
   const pregnantCount = pregnantMares.length;
   
   const activeFatteningCount = activeHorses.filter(h => h.status === 'fattening').length;
+
+  // Разбивка по традиционным возрастным категориям
+  const catCounts = getCategoryBreakdown(activeHorses);
 
   // 2. Overdue or upcoming vaccinations (эффективный статус учитывает срок ревакцинации)
   const pendingVaccinations = vaccinations
@@ -524,6 +528,32 @@ export default function Dashboard({
                 <strong className="text-slate-800 text-sm block mt-0.5">{culls.length} голов ({totalSlaughteredWeight} кг)</strong>
               </div>
             </div>
+          </div>
+
+          {/* Разбивка поголовья по возрастным категориям */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-xs">
+            <h4 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-emerald-600" />
+              Возрастные категории
+            </h4>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              {[
+                { label: 'Жеребята', val: catCounts.foals, cls: 'bg-violet-50 text-violet-700 border-violet-100' },
+                { label: 'Тай', val: catCounts.tai, cls: 'bg-amber-50 text-amber-700 border-amber-100' },
+                { label: 'Байтал', val: catCounts.baital, cls: 'bg-rose-50 text-rose-700 border-rose-100' },
+                { label: 'Құнан', val: catCounts.kunan, cls: 'bg-sky-50 text-sky-700 border-sky-100' },
+                { label: 'Дөнен', val: catCounts.donen, cls: 'bg-teal-50 text-teal-700 border-teal-100' },
+                { label: 'Взрослые', val: catCounts.adults, cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+              ].map(({ label, val, cls }) => (
+                <div key={label} className={`rounded-xl border p-2.5 ${cls}`}>
+                  <div className="text-lg font-black leading-none">{val}</div>
+                  <div className="text-[10px] font-bold mt-1">{label}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-2.5 leading-snug">
+              Жеребята — до 1 года (Құлын, Жабағы). Тай — 1–2 г. Байтал — кобылки 2–3 г. Құнан — жеребчики 2–3 г. Дөнен — 3–4 г.
+            </p>
           </div>
 
         </div>

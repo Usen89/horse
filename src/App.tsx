@@ -43,6 +43,7 @@ import {
   Info,
   History,
   Baby,
+  Venus,
   ArrowLeft,
   UserCircle
 } from 'lucide-react';
@@ -433,6 +434,17 @@ export default function App() {
         const updated = culls.filter(c => c.id !== id);
         setCulls(updated);
         saveState('culls_farm_data', updated);
+      }
+    );
+  };
+
+  const handleClearCulls = () => {
+    requestConfirmation(
+      'Очистить архив забоя',
+      'Удалить ВСЕ записи из архива забоя? Действие необратимо.',
+      () => {
+        setCulls([]);
+        saveState('culls_farm_data', []);
       }
     );
   };
@@ -848,10 +860,11 @@ export default function App() {
           )}
 
           {activeTab === 'culls' && (
-            <CullLog 
+            <CullLog
               culls={culls}
               onUpdateCull={handleUpdateCull}
               onDeleteCull={handleDeleteCull}
+              onClearAll={handleClearCulls}
             />
           )}
 
@@ -898,7 +911,7 @@ export default function App() {
           { tab: 'dashboard', icon: LayoutDashboard, label: 'Главная' },
           { tab: 'database', icon: Database, label: 'Реестр' },
           { tab: 'koseks', icon: Users, label: 'Косяки' },
-          { tab: 'mares', icon: Baby, label: 'Кобылы' },
+          { tab: 'mares', icon: Venus, label: 'Кобылы' },
           { tab: 'profile', icon: UserCircle, label: 'Профиль' },
         ].map(({ tab, icon: Icon, label }) => {
           // Разделы, интегрированные в Профиль, подсвечивают вкладку «Профиль»
